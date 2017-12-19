@@ -20,7 +20,19 @@ class Note:
         self.date = datetime.datetime.today()
 
     def __str__(self):
-        return '\n{} \n# {}\n@ {}'.format(self.name.upper(), self.date, self.dz)
+        return '\n{} \n# {}\n@ {}'.format(self.name.upper(),
+                                          '{}, {}'.format(self.weekday(self.get_calendar()[2]), self.date),
+                                          self.dz)
+
+    def weekday(self, wday):
+        return {
+            1: "Понедельник",
+            2: "Вторник",
+            3: "Среда",
+            4: "Четверг",
+            5: "Пятница",
+            6: "Суббота",
+        }.get(wday)
 
     def get_calendar(self):
         return self.date.isocalendar()
@@ -85,7 +97,6 @@ class PostManager:
                     result.append(note)
                 elif note.get_calendar()[1] == week[1]+1:
                     result.append(note)
-        result.reverse()
         return result
 
     def week(self):
