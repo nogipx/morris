@@ -212,6 +212,6 @@ class Bot:
 
 
 if __name__ == '__main__':
-    config_name = 'test1.conf'
+    config_name = 'bot.conf'
     bot = Bot(run_dir + config_name)
     bot.start()

@@ -92,4 +92,6 @@ class PostManager:
         result = '{}'.format('-'*0)
         for note in self.get_this_week(50):
             result += '{}\n{}'.format(str(note), '-'*20)
+        if result is '':
+            result = 'Записей нет.'
         return result
