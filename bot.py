@@ -54,8 +54,13 @@ def parse_attachments(attachments):
 class Bot:
 
     def __init__(self, path):
+        self.five_days = False
+        self.debug = False
+
         logging.info('Configuration file: ' + path)
         self.config = configparser.ConfigParser()
+        if not os.path.exists(path):
+            self.generate_config(path)
         self.config.read(path)
 
         # Group configures
@@ -66,12 +71,38 @@ class Bot:
         self.group.members_update()
 
         # Posts analyzer configures
-        self.post_login = self.config.get('analyzer', 'login')
-        self.post_password = self.config.get('analyzer', 'password')
-        self.manager = PostManager(self.post_login, self.post_password)
+        self.post_login = self.config.get('posts_parser', 'login')
+        self.post_password = self.config.get('posts_parser', 'password')
+        self.manager = PostManager(self.post_login, self.post_password, self.group_id)
 
-        self.debug = False
+        # Timetable configures
         self.timetable = self.generate_timetable()
+
+    def generate_config(self, path):
+        # settings config
+        self.config.add_section('settings')
+        self.config.set('settings', 'token', '')
+        self.config.set('settings', 'group_id', '')
+        self.config.set('settings', 'exclude', '')
+
+        # timetable config
+        self.config.add_section('timetable')
+        work_days = ''
+        days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота']
+        if self.five_days:
+            days = days[:-1]
+        for day in days:
+            self.config.set('timetable', day, '')
+            work_days += '{},'.format(day)
+        self.config.set('timetable', 'work_days', work_days[:-1])
+
+        # group_bot config
+        self.config.add_section('posts_parser')
+        self.config.set('posts_parser', 'login', '')
+        self.config.set('posts_parser', 'password', '')
+
+        with open(path, 'w') as config_file:
+            self.config.write(config_file)
 
     def generate_exclude_ids(self):
         """ Генерирует id исключенных пользователей из конфига """
@@ -82,32 +113,36 @@ class Bot:
 
     def generate_timetable(self):
         """ Генерация расписания из конфига """
+        days = []
         try:
-            days = str(self.config.get('timetable', 'workdays')).split(',')
-            result = ''
-            for day in days:
-                result += '==== {day} ====\n'.format(day=day)
-                lessons = str(self.config.get('timetable', day)).split(',')
-                for lesson in lessons:
-                    result += '— {lesson}\n'.format(lesson=lesson)
-                result += '\n'
-            logging.info('Timetable generated.')
-            return result
-        except:
+            days = self.config.get('timetable', 'work_days').split(',')
+        except Exception as error:
             logging.info('TIMETABLE ERROR: [timetable] section does not exist.')
+            logging.info(error)
+
+        result = ''
+        for day in days:
+            result += '==== {day} ====\n'.format(day=day.upper())
+            lessons = str(self.config.get('timetable', day)).split(',')
+            for lesson in lessons:
+                result += '— {lesson}\n'.format(lesson=lesson)
+            result += '\n'
+        logging.info('Timetable generated.')
+        return result
 
     def reply(self, user_id, command, attachments):
         """ Ответ """
         timetable_accept = ['tmt', 'Tmt']
         homework_accept = ['hw', 'Hw']
+        domain = self.group.get_info_by_id(user_id).get('domain')
 
         if command in timetable_accept:
             self.group.send(send_to=user_id, message=self.timetable, attachments=attachments)
-            logging.info('Timetable sended to @{}'.format(user_id))
+            logging.info('Timetable sended to @{}'.format(domain))
 
         if command in homework_accept:
             self.group.send(send_to=user_id, message=self.manager.week(), attachments=attachments)
-            logging.info('Homework for week sended to @{}'.format(user_id))
+            logging.info('Homework for week sended to @{}'.format(domain))
 
     def broadcast(self, accept_phrase, user_id, message, destinations, attachments):
         message = re.sub('{} *$'.format(accept_phrase), '', message).strip()
@@ -131,7 +166,8 @@ class Bot:
             try:
                 if client != sender:
                     self.group.send(send_to=client, message=message, attachments=attachments)
-                    logging.info('SENDED TO: {} {}'.format(self.group.get_info_by_id(client).get('first_name'), self.group.get_info_by_id(client).get('last_name')))
+                    logging.info('SENDED TO: {} {}'.format(self.group.get_info_by_id(client).get('first_name'),
+                                                           self.group.get_info_by_id(client).get('last_name')))
                 if client == sender:
                     acknowledge = 'Ok'
                     self.group.send(send_to=client, message=acknowledge, attachments='')
@@ -176,6 +212,6 @@ class Bot:
 
 
 if __name__ == '__main__':
-    config_name = 'test.conf'
+    config_name = 'test1.conf'
     bot = Bot(run_dir + config_name)
     bot.start()

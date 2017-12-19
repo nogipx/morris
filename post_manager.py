@@ -20,7 +20,7 @@ class Note:
         self.date = datetime.datetime.today()
 
     def __str__(self):
-        return '{} \n# {}\n@ {}'.format(self.name.upper(), self.date, self.dz)
+        return '\n{} \n# {}\n@ {}'.format(self.name.upper(), self.date, self.dz)
 
     def get_calendar(self):
         return self.date.isocalendar()
@@ -28,10 +28,11 @@ class Note:
 
 class PostManager:
 
-    def __init__(self, login, password):
+    def __init__(self, login, password, group_id):
         self.login = ''
         self.password = ''
         self.vk = vk_api.VkApi(login, password)
+        self.group_id = group_id
         self.recent_notes = []
         self.last_id = 0
         self.auth()
@@ -61,8 +62,8 @@ class PostManager:
                 continue
         return notes
 
-    def update_posts(self, count):
-        posts = self.vk.method('wall.get', {'domain': 'test11aof', 'count': count, 'fields': 'domain,lists'})
+    def update_posts(self, group_id, count):
+        posts = self.vk.method('wall.get', {'domain': group_id, 'count': count, 'fields': 'domain,lists'})
         posts = posts.get('items')
         recent_notes = []
         for post in posts:
@@ -77,7 +78,7 @@ class PostManager:
     def get_this_week(self, count):
         week = datetime.datetime.today().isocalendar()
         result = []
-        for note in self.update_posts(count):
+        for note in self.update_posts(self.group_id, count):
             note_calendar = note.get_calendar()
             if note_calendar[1] == week[1] and note_calendar[2] >= week[2]:
                 if week[2] not in [6, 7]:
@@ -88,8 +89,7 @@ class PostManager:
         return result
 
     def week(self):
-        result = ''
+        result = '{}'.format('-'*20)
         for note in self.get_this_week(50):
-            print(note)
-            result += '{}{}'.format(str(note), '\n')
+            result += '{}\n{}'.format(str(note), '-'*20)
         return result
