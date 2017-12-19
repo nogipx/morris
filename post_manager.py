@@ -89,7 +89,7 @@ class PostManager:
         return result
 
     def week(self):
-        result = '{}'.format('-'*20)
+        result = '{}'.format('-'*0)
         for note in self.get_this_week(50):
             result += '{}\n{}'.format(str(note), '-'*20)
         return result
