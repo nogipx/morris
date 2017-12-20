@@ -45,13 +45,13 @@ class Note:
     @staticmethod
     def weekday(wday):
         return {
+            0: "Воскресенье",
             1: "Понедельник",
             2: "Вторник",
             3: "Среда",
             4: "Четверг",
             5: "Пятница",
             6: "Суббота",
-            7: "Воскресенье"
         }.get(wday)
 
     def get_calendar(self):
@@ -94,11 +94,14 @@ class PostManager:
             note = Note()
             try:
                 note.name = re.search(name_sep + " ?[А-я ]*", lesson).group().strip("# \n")
-                date = re.search(calendar + " ?[^`]*{}".format(books), lesson).group().strip(
-                    "{}{} \n".format(calendar, books))
-                date = datetime.datetime.strptime(date, '%d.%m').date()
+
+                date = re.search(calendar + " ?[^`]*{}".format(books), lesson).group().strip("{}{} \n".format(calendar, books))
+                date = '{}.{}'.format(date, datetime.datetime.today().timetuple().tm_year)
+                date = datetime.datetime.strptime(date, '%d.%m.%Y').date()
                 note.date = date
+
                 note.dz = re.search(books + " ?[^`]*\n?", lesson).group().strip("{} \n".format(books))
+
                 notes.append(note)
             except:
                 continue
@@ -129,7 +132,6 @@ class PostManager:
         for note in self.update_posts(self.group_id, count):
             note_calendar = note.get_calendar()
             nt_year, nt_week, nt_wday = note_calendar[0], note_calendar[1], note_calendar[2]
-
             if nt_week == td_week and nt_wday >= td_wday:
                 if td_wday not in [6, 7]:
                     td_tt = today.timetuple()
