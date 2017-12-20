@@ -51,6 +51,7 @@ class Note:
             4: "Четверг",
             5: "Пятница",
             6: "Суббота",
+            7: "Воскресенье"
         }.get(wday)
 
     def get_calendar(self):
@@ -95,7 +96,7 @@ class PostManager:
                 note.name = re.search(name_sep + " ?[А-я ]*", lesson).group().strip("# \n")
                 date = re.search(calendar + " ?[^`]*{}".format(books), lesson).group().strip(
                     "{}{} \n".format(calendar, books))
-                date = datetime.datetime.strptime(date, '%d.%m.%y').date()
+                date = datetime.datetime.strptime(date, '%d.%m').date()
                 note.date = date
                 note.dz = re.search(books + " ?[^`]*\n?", lesson).group().strip("{} \n".format(books))
                 notes.append(note)
