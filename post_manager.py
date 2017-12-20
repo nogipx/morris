@@ -14,7 +14,6 @@ logging.basicConfig(
 
 class Note:
     def __init__(self):
-        self.id = ''
         self.name = ''
         self.dz = ''
         self.date = datetime.datetime.today()
@@ -24,7 +23,8 @@ class Note:
                                           '{}, {}'.format(self.weekday(self.get_calendar()[2]), self.date),
                                           self.dz)
 
-    def weekday(self, wday):
+    @staticmethod
+    def weekday(wday):
         return {
             1: "Понедельник",
             2: "Вторник",
@@ -55,29 +55,41 @@ class PostManager:
         except vk_api.ApiError as error:
             logging.info(error)
 
-    def parse_lessons(self, text):
+    def sort(self, result):
+        return sorted(result, key=self.sortByDate)
+
+    @staticmethod
+    def sortByDate(note):
+        return note.date.timetuple().tm_yday
+
+    @staticmethod
+    def parse_lessons(text):
         calendar = '📅'
         books = '📚'
         name_sep = '#'
         lessons = text.rsplit('_')
         notes = []
+
         for lesson in lessons:
             note = Note()
             try:
                 note.name = re.search(name_sep + " ?[А-я ]*", lesson).group().strip("# \n")
-                date = re.search(calendar + " ?[^`]*{}".format(books), lesson).group().strip("{}{} \n".format(calendar, books))
+                date = re.search(calendar + " ?[^`]*{}".format(books), lesson).group().strip(
+                    "{}{} \n".format(calendar, books))
                 date = datetime.datetime.strptime(date, '%d.%m.%y').date()
                 note.date = date
                 note.dz = re.search(books + " ?[^`]*\n?", lesson).group().strip("{} \n".format(books))
                 notes.append(note)
             except:
                 continue
+
         return notes
 
     def update_posts(self, group_id, count):
         posts = self.vk.method('wall.get', {'domain': group_id, 'count': count, 'fields': 'domain,lists'})
         posts = posts.get('items')
         recent_notes = []
+
         for post in posts:
             text = post.get('text')
             if re.sub('^#ДЗ *\n?$', '', text) or re.sub('^#дз *\n?$', '', text):
@@ -85,24 +97,35 @@ class PostManager:
                 for note in lessons:
                     if note is not None:
                         recent_notes.append(note)
+
         return recent_notes
 
     def get_this_week(self, count):
-        week = datetime.datetime.today().isocalendar()
+        today = datetime.datetime.today()
+        td = today.isocalendar()
+        td_year, td_week, td_wday = td[0], td[1], td[2]
         result = []
+
         for note in self.update_posts(self.group_id, count):
             note_calendar = note.get_calendar()
-            if note_calendar[1] == week[1] and note_calendar[2] >= week[2]:
-                if week[2] not in [6, 7]:
+            nt_year, nt_week, nt_wday = note_calendar[0], note_calendar[1], note_calendar[2]
+
+            if nt_week == td_week and nt_wday >= td_wday:
+                if td_wday not in [6, 7]:
+                    td_tt = today.timetuple()
+                    if td_wday == nt_wday and td_tt.tm_hour >= 13:
+                        continue
                     result.append(note)
-                elif note.get_calendar()[1] == week[1]+1:
+                elif nt_week == td_week + 1:
                     result.append(note)
-        return result
+        print(self.sort(result))
+
+        return self.sort(result)
 
     def week(self):
-        result = '{}'.format('-'*0)
+        result = '{}'.format('-' * 0)
         for note in self.get_this_week(50):
-            result += '{}\n{}'.format(str(note), '-'*20)
+            result += '{}\n{}'.format(str(note), '-' * 20)
         if result is '':
             result = 'Записей нет.'
         return result
