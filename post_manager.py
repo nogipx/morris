@@ -19,9 +19,28 @@ class Note:
         self.date = datetime.datetime.today()
 
     def __str__(self):
+        tt = self.date.timetuple()
+        weekday = self.weekday(self.get_calendar()[2])
         return '\n{} \n# {}\n@ {}'.format(self.name.upper(),
-                                          '{}, {}'.format(self.weekday(self.get_calendar()[2]), self.date),
+                                          '{}, {}'.format(weekday, '{} {}'.format(tt.tm_mday, self.month(tt.tm_mon))),
                                           self.dz)
+
+    @staticmethod
+    def month(month):
+        return {
+            1: "января",
+            2: "февраля",
+            3: "марта",
+            4: "апреля",
+            5: "мая",
+            6: "июня",
+            7: "июля",
+            8: "августа",
+            9: "сентября",
+            10: "октября",
+            11: "ноября",
+            12: "декабря"
+        }.get(month)
 
     @staticmethod
     def weekday(wday):
