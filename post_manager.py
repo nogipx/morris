@@ -118,7 +118,6 @@ class PostManager:
                     result.append(note)
                 elif nt_week == td_week + 1:
                     result.append(note)
-        print(self.sort(result))
 
         return self.sort(result)
 
