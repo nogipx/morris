@@ -20,12 +20,14 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 import logging
 
 import configparser
+import argparse
 import vk_api
 import re
 import os
 
-from group import Group
-from post_manager import PostManager
+from files.group import Group
+from files.post_manager import PostManager
+from files.generators import timetable_from_config
 
 run_dir = '{}/'.format(os.path.split(__file__)[0])
 
@@ -71,12 +73,14 @@ class Bot:
         self.group.members_update()
 
         # Posts analyzer configures
-        self.post_login = self.config.get('posts_parser', 'login')
-        self.post_password = self.config.get('posts_parser', 'password')
-        self.manager = PostManager(self.post_login, self.post_password, self.group_id)
+        post_login = self.config.get('posts_parser', 'login')
+        post_password = self.config.get('posts_parser', 'password')
+        self.manager = None
+        if post_login and post_password:
+            self.manager = PostManager(post_login, post_password, self.group_id)
 
         # Timetable configures
-        self.timetable = self.generate_timetable()
+        self.timetable = timetable_from_config(self.config)
 
     def generate_config(self, path):
         # settings config
@@ -107,44 +111,32 @@ class Bot:
     def generate_exclude_ids(self):
         """ Генерирует id исключенных пользователей из конфига """
         exclude = self.config.get('settings', 'exclude')
-        exclude_ids = self.group.convert_domains(exclude)
-        logging.info('Generated exclude ids')
-        return exclude_ids
-
-    def generate_timetable(self):
-        """ Генерация расписания из конфига """
-        days = []
-        try:
-            days = self.config.get('timetable', 'work_days').split(',')
-        except Exception as error:
-            logging.info('TIMETABLE ERROR: [timetable] section does not exist.')
-            logging.info(error)
-
-        result = ''
-        for day in days:
-            result += '==== {day} ====\n'.format(day=day.upper())
-            lessons = str(self.config.get('timetable', day)).split(',')
-            for lesson in lessons:
-                result += '— {lesson}\n'.format(lesson=lesson)
-            result += '\n'
-        logging.info('Timetable generated.')
-        return result
+        if exclude:
+            exclude_ids = self.group.convert_domains(exclude)
+            logging.info('Generated exclude ids')
+            return exclude_ids
+        return []
 
     def reply(self, user_id, command, attachments):
         """ Ответ """
-        timetable_accept = ['tmt', 'Tmt']
+        timetable_accept = ['tt', 'Tt']
         homework_accept = ['hw', 'Hw']
         domain = self.group.get_info_by_id(user_id).get('domain')
+        message = ''
 
         if command in timetable_accept:
-            self.group.send(send_to=user_id, message=self.timetable, attachments=attachments)
+            message = self.timetable
             logging.info('Timetable sended to @{}'.format(domain))
 
-        if command in homework_accept:
-            self.group.send(send_to=user_id, message=self.manager.week(), attachments=attachments)
+        elif command in homework_accept and self.manager is not None:
+            message = self.manager.week()
             logging.info('Homework for week sended to @{}'.format(domain))
 
+        if message:
+            self.group.send(send_to=user_id, message=message, attachments=attachments)
+
     def broadcast(self, accept_phrase, user_id, message, destinations, attachments):
+
         message = re.sub('{} *$'.format(accept_phrase), '', message).strip()
 
         logging.info('BROADCAST: @{domain} written: {text:5}'.format(
@@ -159,23 +151,30 @@ class Bot:
 
     def send_out(self, sender, message, destinations, attachments):
         """ Рассылка """
+
         self.group.members_update()
+
         if self.debug:  # (debug) participants, (exclude admins) don't receive messages
             destinations = self.group.get_list_ids('admins')
+
         for client in destinations:
             try:
+
                 if client != sender:
                     self.group.send(send_to=client, message=message, attachments=attachments)
                     logging.info('SENDED TO: {} {}'.format(self.group.get_info_by_id(client).get('first_name'),
                                                            self.group.get_info_by_id(client).get('last_name')))
+
                 if client == sender:
                     acknowledge = 'Ok'
                     self.group.send(send_to=client, message=acknowledge, attachments='')
+
             except vk_api.ApiError as error:
                 logging.info('ID:{0}; BROADCAST ERROR: {1}'.format(client, error))
 
     def search(self, user_id, message, attachments, event):
         """ Распознавание команд """
+
         send_accept = 'all'
         to_moders_accept = 'mdr'
 
@@ -212,6 +211,8 @@ class Bot:
 
 
 if __name__ == '__main__':
-    config_name = 'bot.conf'
-    bot = Bot(run_dir + config_name)
+    parser = argparse.ArgumentParser(description="Morris's Bot settings")
+    parser.add_argument('path', help='path to config-file or its name')
+    path = vars(parser.parse_args()).get('path')
+    bot = Bot(path)
     bot.start()
