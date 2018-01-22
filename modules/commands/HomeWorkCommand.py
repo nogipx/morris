@@ -1,4 +1,4 @@
-from modules.commands.intefaces.ICommand import ICommand
+from modules.interfaces.ICommand import ICommand
 
 
 class HomeWorkCommand(ICommand):

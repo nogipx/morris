@@ -24,11 +24,11 @@ class IGroupManagerImplement(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def send(self, destination, message, attachments):
+    def send(self, user_id, message, attachments):
         pass
 
     @abstractmethod
-    def broadcast(self, category, message, attachments):
+    def broadcast(self, users, message, attachments):
         pass
 
     @abstractmethod

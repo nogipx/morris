@@ -8,7 +8,7 @@
 То есть вынести парсинг в отдельные класссы
 """
 import re
-from modules.ege_tasker.data_types.Theme import Theme
+from modules.ege_parser.data_types.Theme import Theme
 import mechanicalsoup
 
 
@@ -33,12 +33,15 @@ class Subject:
     def configure(self, themes):
         self.add_theme(themes)
 
+    def get_random_task(self, task_number):
+        pass
+
     def get_theme(self,  theme_num):
         if theme_num in self._themes.keys():
-            return self._themes.get(theme_num)
+            return self._themes.get(theme_num).setup()
         return "No exist {} theme".format(theme_num)
 
-    def setup_themes(self):
+    def setup(self):
         self._themes.clear()
         self._count = 0
         browser = mechanicalsoup.StatefulBrowser()
@@ -51,6 +54,7 @@ class Subject:
         for i, point in enumerate(points):
             if i not in [0, 1]:
                 theme_and_links = re.findall('/>([\-\w\s]*) <a href="([/?=\w\s\d]*)"', str(point))
+                print(theme_and_links)
                 if theme_and_links:
                     links.append(theme_and_links)
                 point = list(map(str, point))
@@ -68,6 +72,7 @@ class Subject:
                         # print()
                         theme_obj = Theme(theme_title, self._site + theme_link)
                         self.add_theme({self._count: theme_obj})
+        return self
 
     def __str__(self):
         result = '{} - Тем: {}'.format(self.name, len(self._themes))
@@ -75,13 +80,11 @@ class Subject:
 
 
 if __name__ == '__main__':
-    sub = Subject('math', 'http://math-ege.sdamgia.ru')
-    sub.setup_themes()
-    print(sub.get_list_themes())
-    theme4 = sub.get_theme(4)
-    theme4.setup_problems()
-    problem = theme4.get_problem(6)
-    print(problem.get_text())
+    sub = Subject('math', 'http://math-ege.sdamgia.ru').setup()
+    # print(sub.get_list_themes())
+    theme4 = sub.get_theme(4).setup_problems()
+    problem = theme4.get_problem(6).get_text()
+    # print(problem)
 
     # sub.get_list_themes()
 

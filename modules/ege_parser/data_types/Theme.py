@@ -1,6 +1,6 @@
 import mechanicalsoup
 
-from modules.ege_tasker.data_types.Problem import Problem
+from modules.ege_parser.data_types.Problem import Problem
 
 
 class Theme:
@@ -18,7 +18,7 @@ class Theme:
         self._problems.update(problem)
         self._count += 1
 
-    def setup_problems(self):
+    def setup(self):
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(self._site)
         maths = browser.get_current_page().find_all('div', class_='prob_view')
@@ -26,6 +26,7 @@ class Theme:
             problem = Problem(math)
             problem.configure()
             self.add_problem({self._count: problem})
+        return self
 
     def get_problem(self, problem_num):
         if problem_num in self._problems.keys():
@@ -36,8 +37,9 @@ class Theme:
         result = '=' * 20 + '\n'
         ids = []
         count = 0
-        for problem in self._problems:
+        for problem_num in self._problems.keys():
             count = len(self._problems)
+            problem = self._problems.get(problem_num)
             ids.append(problem.prob_id)
         result += 'Тема: {theme}\n'\
                   'Кол-во заданий: {count}\n' \

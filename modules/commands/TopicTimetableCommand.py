@@ -1,5 +1,4 @@
-from modules.commands.intefaces.ICommand import ICommand
-from BotAccount import BotAccount
+from modules.interfaces.ICommand import ICommand
 import datetime
 
 
@@ -12,24 +11,14 @@ class TopicTimetableCommand(ICommand):
         self._days = []
         self._account = account
         self._group_id = group_id
+        self.add_activate_time('6:00', '20:00')
         self.update()
 
-    def proceed(self, args):
-        if self._days:
-            tt = ''
-            for day in self._days:
-                tt += day + '\n'*2
-            if 't' in args:
-                return self.get_tomorrow()
-            return tt
-
-    def handle(self, command):
-        cmd = command.split()
-        args = cmd[1:]
-        if cmd[0] in self._triggers:
-            return self.get_tomorrow()
-        if cmd[0] in self._extra_triggers:
-            return self.proceed(args)
+    def proceed(self, user_id, command):
+        if command in self._triggers:
+            return self.get_short_timetable()
+        if command in self._extra_triggers:
+            return self.get_full_timetable()
 
     def setup_bot_account(self, account):
         self._account = account
@@ -63,9 +52,19 @@ class TopicTimetableCommand(ICommand):
             text = comment.get('text')
             self._days.append(text)
 
-    def get_tomorrow(self):
-        today = datetime.datetime.today().timetuple().tm_wday
-        return self._days[self.inc_day(today)]
+    def get_full_timetable(self):
+        timetable = ''
+        for day in self._days:
+            timetable += day + '\n' * 2
+        return timetable
+
+    def get_short_timetable(self):
+        today = datetime.datetime.today().timetuple()
+        wday = today.tm_wday
+        if today.tm_hour < 13:
+            return self._days[wday]
+        else:
+            return self._days[self.inc_day(wday)]
 
     def inc_day(self, today):
         if today in [5, 6]:

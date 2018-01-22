@@ -1,27 +1,17 @@
 from modules.group_manager.GroupManager import GroupManager
 from BotAccount import BotAccount
 from modules.commands.CommandObserver import CommandObserver
-from modules.commands.HomeWorkCommand import HomeWorkCommand
+from modules.interfaces.IObserver import IObserver
+from modules.commands.EgeShellCommand import EgeShellCommand
 from modules.commands.TopicTimetableCommand import TopicTimetableCommand
-from modules.ege_tasker.EgeTasker import EgeTasker
-from modules.ege_tasker.Session import Session
 from vk_api.longpoll import VkLongPoll, VkEventType
+from modules.notify_checker.UntillEge import UntillEge
+from modules.notify_checker.NotifyCheckObserver import NotifyCheckerObserver
+from threading import Thread
 import re
 
-# run_dir = '{}/'.format(os.getcwd())
-# logging.basicConfig(
-#     format='%(asctime)s|| %(funcName)20s:%(lineno)-3d|| %(message)s',
-#     level=logging.INFO,
-#     filename=run_dir + 'bot.log',
-#     filemode='w')
 
 class Bot:
-
-    def __init__(self):
-        # self._group = None
-        # self._account = None
-        # self._observer = None
-        pass
 
     def set_account_api(self, api):
         self._account = api
@@ -32,60 +22,97 @@ class Bot:
     def set_command_observer(self, api):
         self._observer = api
 
+    def set_command_checker(self, api):
+        self._checker = api
+
+    @staticmethod
+    def parse_attachments(attachments):
+        attach = []
+        result = ''
+        files = attachments
+        amount = 0
+
+        for file in files.keys():
+            if str(file).endswith('type'):
+                amount += 1
+                attach.append((files.get('attach{0}_type'.format(amount)) + files.get('attach{0}'.format(amount))))
+        for i in attach:
+            result += '{},'.format(i)
+        return result
+
     def search(self, user_id, message, attachments, event):
         send_accept = 'all'
         to_moders_accept = 'mdr'
 
-        if user_id in list(self._group.get_members_ids('admins')):
-            if re.findall('{} *$'.format(send_accept), message):
+        if re.findall('{} *$'.format(send_accept), message):
+            if user_id in list(self._group.get_moders_ids()):
+
                 message = re.sub('{} *$'.format(send_accept), '', message)
-                self._group.broadcast('members', message, attachments)
+                self._group.broadcast(
+                    self._group.get_members(),
+                    message,
+                    self.parse_attachments(attachments))
 
-            elif re.findall('{} *$'.format(to_moders_accept), message):
+        elif re.findall('{} *$'.format(to_moders_accept), message):
+            if user_id in list(self._group.get_moders_ids()):
+
                 message = re.sub('{} *$'.format(to_moders_accept), '', message)
-                self._group.broadcast('admins', message, attachments)
+                self._group.broadcast(
+                    self._group.get_members(admins=True),
+                    message,
+                    self.parse_attachments(attachments))
 
-            else:
-                message = self._observer.command(message)
-                if message:
-                    self._group.get_api().method('messages.setActivity', {
-                        'user_id': event.user_id,
-                        'type': 'typing'
-                    })
-                    self._group.send(user_id, message, attachments)
+        else:
+            message = self._observer.execute(user_id, message)
+            if message:
+                self._group.get_api().method('messages.setActivity', {
+                    'user_id': event.user_id,
+                    'type': 'typing'
+                })
+                self._group.send(user_id, message, attachments)
 
     def listen(self):
         longpoll = VkLongPoll(self._group.get_api())
+        p = Thread(target=self._checker.loop)
+        p.start()
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 self._group.get_api().method('messages.markAsRead', {'peer_id': event.user_id})
-
                 self.search(event.user_id, event.text, event.attachments, event)
 
 
 if __name__ == '__main__':
     bot = Bot()
-
     token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
+    # token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
+
+    # Creating group-class
     group = GroupManager()
     group.auth(token)
     bot.set_group_api(group)
 
+    # Setup account for bot. This is need for parsing group wall and timetable
     account = BotAccount.get_account()
-    account.auth('89890836967', 'HawkingBH98')
+    account.auth('89884095357', 'HokingBH98')
     bot.set_account_api(account)
 
-    observer = CommandObserver.get_command_observer()
+    # Setup observers that handle commands
+    command_observer = IObserver.get_observer(CommandObserver)
+    notify_observer = IObserver.get_observer(NotifyCheckerObserver)
+    notify_observer.set_group(group)
+
+    # Setup commands
     timetable = TopicTimetableCommand(group.group_id, account)
-    ege = EgeTasker()
-    ege.set_group(group)
+    ege = EgeShellCommand(group)
+    untill_ege = UntillEge('18-05-28')
 
-    observer.add_commands(timetable, ege)
-    bot.set_command_observer(observer)
+    # Adding command modules in particular handlers(observers)
+    command_observer.add_items(timetable, ege, untill_ege)
+    notify_observer.add_items(untill_ege, timetable)
 
-    # observer.command('ege setup')
-    # print(observer.command('ege list'))
-    # print('Main_COMMAND:', observer.command('ege help'))
+    # Adding observers into bot
+    bot.set_command_observer(command_observer)
+    bot.set_command_checker(notify_observer)
 
+    # Start mainloop
     bot.listen()
-

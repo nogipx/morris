@@ -1,7 +1,3 @@
-import mechanicalsoup
-from modules.commands.intefaces.ICommand import ICommand
-
-
 class Problem:
 
     def __init__(self, problem):
@@ -27,7 +23,6 @@ class Problem:
         self.prob_id = str(prob.a.text).strip()
 
     def setup_prob_text(self):
-        tag = 'body' + self.prob_id
         text = self.problem.find('div', class_='pbody')
         paragraphs = text.select('p')
         self.text = ''

@@ -1,12 +1,9 @@
-from modules.ege_tasker.interfaces.IEgeTasker import IEgeTasker
-from modules.ege_tasker.data_types.Subject import Subject
-from modules.ege_tasker.Session import Session
-from modules.commands.intefaces.ICommand import ICommand
+from modules.ege_parser.data_types.Subject import Subject
 import mechanicalsoup
 import re
 
 
-class EgeTasker(IEgeTasker, ICommand):
+class EgeTasker:
 
     def __init__(self):
         super().__init__()
@@ -14,32 +11,8 @@ class EgeTasker(IEgeTasker, ICommand):
         self._subjects = {}
         self.themes_list = 'There are not theme :('
 
-    def handle(self, command):
-        cmd = command.split()
-        if cmd[0] not in self._triggers:
-            return
-        arg = cmd[1:]
-
-        commands = {
-            'setup': self.setup,
-            'get': '',
-        }
-
-        if arg and arg[0] in commands.keys():
-            method = commands.get(arg[0])
-            arg = arg[1:]
-            return method(*arg)
-        return 'Bad key'
-
-    def proceed(self, args):
-        pass
-
     def set_group(self, group):
         self._group = group
-
-    def setup(self):
-        ege_setuper = Session(self._group)
-        ege_setuper.loop()
 
     def help(self, *args, **kwargs):
         print(args)
@@ -76,6 +49,7 @@ class EgeTasker(IEgeTasker, ICommand):
 
 if __name__ == '__main__':
     ege = EgeTasker()
-    subj = ege.add_subject('math', 'https://math-ege.sdamgia.ru')
-    subj.setup_themes()
-    print(ege.list_subject_themes())
+    subj = ege.add_subject('math', 'https://math-ege.sdamgia.ru').setup()
+    print(subj.get_list_themes())
+    th2 = subj.get_theme(90)
+    print(th2)
