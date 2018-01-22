@@ -83,8 +83,6 @@ class Bot:
 
 if __name__ == '__main__':
     bot = Bot()
-    token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
-    # token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
 
     # Creating group-class
     group = GroupManager()
@@ -93,7 +91,7 @@ if __name__ == '__main__':
 
     # Setup account for bot. This is need for parsing group wall and timetable
     account = BotAccount.get_account()
-    account.auth('89884095357', 'HokingBH98')
+    account.auth(login, password)
     bot.set_account_api(account)
 
     # Setup observers that handle commands
