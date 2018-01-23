@@ -11,11 +11,13 @@ class EgeShellCommand(ICommand):
         self._triggers = ['ege', 'Ege']
         self._group = group
 
-    def proceed(self, user_id, command, *args):
+    def proceed(self, *args):
+        if not (len(args) >= 2):
+            return
+        user_id, command = args[0], args[1]
         command = command.split()
-        cmd, args = command[0], command[1:]
         user = UsersStorage.get_storage().find_user(user_id)
-        if user and (cmd in self._triggers):
+        if user and (command[0] in self._triggers):
             shell = EgeShell(self._group, user)
             if user.session_thread:
                 return 'Cессия уже открыта! \n"exit" для завершения.'

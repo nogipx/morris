@@ -6,19 +6,22 @@ class TopicTimetableCommand(ICommand):
 
     def __init__(self, group_id, account):
         super().__init__()
-        self._triggers = ['t', 'T']
-        self._extra_triggers = ['tt', 'Tt']
+        self._triggers = ['t', 'T', 'tt', 'Tt']
+        self._short_tt = ['t', 'T']
+        self._full_tt = ['tt', 'Tt']
         self._days = []
         self._account = account
         self._group_id = group_id
-        self.add_activate_time('6:00', '20:00')
         self.update()
 
-    def proceed(self, user_id, command):
-        if command in self._triggers:
-            return self.get_short_timetable()
-        if command in self._extra_triggers:
-            return self.get_full_timetable()
+    def proceed(self, *args):
+        if len(args) > 0 and args[1]:
+            command = args[1]
+            if command in self._short_tt:
+                return self.get_short_timetable()
+            if command in self._full_tt:
+                return self.get_full_timetable()
+        return self.get_short_timetable()
 
     def setup_bot_account(self, account):
         self._account = account

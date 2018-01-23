@@ -72,3 +72,4 @@ class EgeDatabase:
             )
         crs.execute(execute)
         return crs.fetchall()
+

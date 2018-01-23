@@ -1,3 +1,5 @@
+from threading import Thread
+
 import vk_api
 
 from modules.group_manager.data_types.User import User
@@ -9,7 +11,6 @@ import logging
 class GroupManager(IGroupManagerImplement):
 
     def __init__(self):
-
         self._storage = UsersStorage.get_storage()
 
     def auth(self, token):
@@ -20,7 +21,7 @@ class GroupManager(IGroupManagerImplement):
         self.setup()
 
     def setup(self):
-        self.setup_group()
+        self._setup_group()
         self.update_members()
 
     def set_exclude_ids(self, exclude):
@@ -46,7 +47,7 @@ class GroupManager(IGroupManagerImplement):
                     "attachments": attachments
                 })
             except vk_api.VkApiError as e:
-                print(e)
+                pass
 
     def get_api(self):
         return self._vk
@@ -58,21 +59,21 @@ class GroupManager(IGroupManagerImplement):
             return vk.method('groups.getMembers', kwargs)
 
         admins = api_get_members(self._vk, group_id=self.group_id, fields=fields, filter='managers')
-        self.configure_users(self._storage, admins)
+        self._configure_users(self._storage, admins)
         members = api_get_members(self._vk, group_id=self.group_id, fields=fields)
-        self.configure_users(self._storage, members)
+        self._configure_users(self._storage, members)
 
-    def configure_users(self, storage, items, exclude=list()):
+    def _configure_users(self, storage, items, exclude=list()):
         for user in items.get('items'):
             if user.get('id') not in exclude:
                 member = User()
                 member.configure(**user)
                 storage.add_user(member)
 
-    def get_moders_ids(self):
+    def _get_moders_ids(self):
         return self._storage.admins_ids
 
-    def setup_group(self):
+    def _setup_group(self):
         group = dict(list(self._vk.method('groups.getById'))[0])
         self._group_domain = group.get("screen_name")
         self.group_id = group.get("id")

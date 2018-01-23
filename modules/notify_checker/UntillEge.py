@@ -9,7 +9,6 @@ class UntillEge(ICommand):
         self._triggers = ['ue', 'Ue']
         self.ege_day = datetime.datetime.strptime(ege_date, '%y-%m-%d')
         self.ege_yday = self.ege_day.timetuple().tm_yday
-        self.add_activate_time('6:00', '20:00')
 
     def proceed(self, *args):
         today = datetime.date.today().timetuple()
@@ -28,7 +27,7 @@ class UntillEge(ICommand):
             elif 5 <= last_num <= 9:
                 return 'дней'
 
-        message = 'До первого экзамена {left} {num_day} {day_msg}'\
+        message = 'До начала экзаменов {left} {num_day} {day_msg}.'\
             .format(left='остался' if str(yday)[-1] == '1' else 'осталось',
                     day_msg=day_msg(self.ege_yday - yday),
                     num_day=self.ege_yday - yday)

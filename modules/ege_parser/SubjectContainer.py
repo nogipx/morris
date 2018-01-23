@@ -37,14 +37,14 @@ class SubjectParser:
 
     def setup_themes(self, html_block):
         themes = []
-        print(len(html_block))
+        # print(len(html_block))
         while html_block:
             tag = html_block.pop()
-            print(tag.prettify())
+            # print(tag.prettify())
             theme_name = tag.getText().rstrip('просмотреть')
             if theme_name:
                 theme_link = tag.find('a', style="font-size:8pt").get('href')
-                print(theme_name, theme_link)
+                # print(theme_name, theme_link)
         return themes
 
 

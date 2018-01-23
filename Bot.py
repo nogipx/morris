@@ -1,12 +1,4 @@
-from modules.group_manager.GroupManager import GroupManager
-from BotAccount import BotAccount
-from modules.commands.CommandObserver import CommandObserver
-from modules.interfaces.IObserver import IObserver
-from modules.commands.EgeShellCommand import EgeShellCommand
-from modules.commands.TopicTimetableCommand import TopicTimetableCommand
 from vk_api.longpoll import VkLongPoll, VkEventType
-from modules.notify_checker.UntillEge import UntillEge
-from modules.notify_checker.NotifyCheckObserver import NotifyCheckerObserver
 from threading import Thread
 import re
 
@@ -46,21 +38,24 @@ class Bot:
 
         if re.findall('{} *$'.format(send_accept), message):
             if user_id in list(self._group.get_moders_ids()):
-
                 message = re.sub('{} *$'.format(send_accept), '', message)
-                self._group.broadcast(
+                broadcast = Thread(target=self._group.broadcast, args=(
                     self._group.get_members(),
                     message,
-                    self.parse_attachments(attachments))
+                    self.parse_attachments(attachments)
+                ))
+                broadcast.start()
 
         elif re.findall('{} *$'.format(to_moders_accept), message):
             if user_id in list(self._group.get_moders_ids()):
 
                 message = re.sub('{} *$'.format(to_moders_accept), '', message)
-                self._group.broadcast(
+                broadcast = Thread(target=self._group.broadcast, args=(
                     self._group.get_members(admins=True),
                     message,
-                    self.parse_attachments(attachments))
+                    self.parse_attachments(attachments)
+                ))
+                broadcast.start()
 
         else:
             message = self._observer.execute(user_id, message)
@@ -73,46 +68,10 @@ class Bot:
 
     def listen(self):
         longpoll = VkLongPoll(self._group.get_api())
-        p = Thread(target=self._checker.loop)
-        p.start()
+        checker = Thread(target=self._checker.execute)
+        checker.start()
+        # checker.join()
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 self._group.get_api().method('messages.markAsRead', {'peer_id': event.user_id})
                 self.search(event.user_id, event.text, event.attachments, event)
-
-
-if __name__ == '__main__':
-    bot = Bot()
-    token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
-    # token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
-
-    # Creating group-class
-    group = GroupManager()
-    group.auth(token)
-    bot.set_group_api(group)
-
-    # Setup account for bot. This is need for parsing group wall and timetable
-    account = BotAccount.get_account()
-    account.auth('89884095357', 'HokingBH98')
-    bot.set_account_api(account)
-
-    # Setup observers that handle commands
-    command_observer = IObserver.get_observer(CommandObserver)
-    notify_observer = IObserver.get_observer(NotifyCheckerObserver)
-    notify_observer.set_group(group)
-
-    # Setup commands
-    timetable = TopicTimetableCommand(group.group_id, account)
-    ege = EgeShellCommand(group)
-    untill_ege = UntillEge('18-05-28')
-
-    # Adding command modules in particular handlers(observers)
-    command_observer.add_items(timetable, ege, untill_ege)
-    notify_observer.add_items(untill_ege, timetable)
-
-    # Adding observers into bot
-    bot.set_command_observer(command_observer)
-    bot.set_command_checker(notify_observer)
-
-    # Start mainloop
-    bot.listen()
