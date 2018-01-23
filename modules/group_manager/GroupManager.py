@@ -70,7 +70,7 @@ class GroupManager(IGroupManagerImplement):
                 member.configure(**user)
                 storage.add_user(member)
 
-    def _get_moders_ids(self):
+    def get_moders_ids(self):
         return self._storage.admins_ids
 
     def _setup_group(self):

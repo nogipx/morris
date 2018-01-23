@@ -52,3 +52,6 @@ class ICommand(metaclass=ABCMeta):
                 func_args = cmd[1:]
                 return self.proceed(user_id, func, *func_args)
         return None
+
+    def generate_name(self):
+        self.name = self._triggers[0]

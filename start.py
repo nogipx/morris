@@ -32,12 +32,13 @@ def setup_command(cmd_class, *class_args, all_week=True, **kwargs):
                 cmd_object.add_activate_time(*value)
                 continue
             cmd_object.add_activate_time(value)
+    cmd_object.generate_name()
     return cmd_object
 
 
 bot = Bot()
-token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
-# token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
+# token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
+token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
 
 # Creating group-class
 group = GroupManager()
@@ -71,12 +72,11 @@ ege_day = '18-05-28'
 untill_ege = setup_command(UntillEge, ege_day, time=ue_time, days=ue_days)
 
 # Homework
-hw = setup_command(HomeworkCommand, account, group.group_id, time='20:00')
+hw_time = ('6:00', '20:00')
+hw = setup_command(HomeworkCommand, account, group.group_id, time=hw_time)
 
-# Help
+# Help and About
 help = setup_command(HelpCommand)
-
-# About
 about = setup_command(AboutCommand)
 
 # =================================================================
