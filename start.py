@@ -36,9 +36,25 @@ def setup_command(cmd_class, *class_args, all_week=True, **kwargs):
     return cmd_object
 
 
+def weekdays(*wdays):
+    data = {
+        "Воскресенье": 6,
+        "Понедельник": 0,
+        "Вторник": 1,
+        "Среда": 2,
+        "Четверг": 3,
+        "Пятница": 4,
+        "Суббота": 5,
+    }
+    result = []
+    for day in wdays:
+        result.append(data.get(day))
+    return result
+
+
 bot = Bot()
-# token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
-token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
+token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
+# token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
 
 # Creating group-class
 group = GroupManager()
@@ -66,8 +82,8 @@ timetable = setup_command(TopicTimetableCommand, group.group_id, account, time=t
 ege = setup_command(EgeShellCommand, group)
 
 # Timer untill EGE
-ue_time = ('9:00')
-ue_days = 6
+ue_time = ('9:00', '22:29')
+ue_days = weekdays('Вторник')
 ege_day = '18-05-28'
 untill_ege = setup_command(UntillEge, ege_day, time=ue_time, days=ue_days)
 
