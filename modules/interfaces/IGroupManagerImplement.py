@@ -16,7 +16,7 @@ class IGroupManagerImplement(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_members(self, category):
+    def get_members_ids(self, category):
         pass
 
     @abstractmethod

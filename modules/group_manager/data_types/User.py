@@ -1,16 +1,11 @@
 class User:
     def __init__(self):
-        self.first_name = ""
-        self.last_name = ""
         self.id = ""
         self.domain = ""
-        self.personal = ""
+        self.first_name = ""
+        self.last_name = ""
         self.role = ""
         self.session_thread = None
-        self.lists = []
-
-    def add_to_list(self, lists):
-        self.lists.append(lists)
 
     def get_name(self):
         return "{} {}".format(self.first_name, self.last_name)

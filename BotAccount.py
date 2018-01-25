@@ -28,4 +28,8 @@ class BotAccount:
             pass
 
     def method(self, method, args):
-        return self._vk.method(method, args)
+        try:
+            message = self._vk.method(method, args)
+            return message
+        except vk_api.VkApiError as error:
+            print(error)

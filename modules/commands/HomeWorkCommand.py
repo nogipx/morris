@@ -1,7 +1,4 @@
-import os
 import re
-import vk_api
-import logging
 import datetime
 from modules.interfaces.ICommand import ICommand
 
@@ -57,7 +54,7 @@ class HomeworkCommand(ICommand):
     def __init__(self, bot_account, group_id):
         super().__init__()
         self._triggers = ['hw', 'Hw']
-        self.vk = bot_account
+        self.account = bot_account
         self.group_id = group_id
         self.recent_notes = []
         self.last_id = 0
@@ -98,8 +95,16 @@ class HomeworkCommand(ICommand):
 
         return notes
 
-    def update_posts(self, group_id, count):
-        posts = self.vk.method('wall.get', {'domain': group_id, 'count': count, 'fields': 'domain,lists'})
+    def update_posts(self,account, group_id, count):
+        if group_id > 0:
+            group_id *= -1
+        print(account)
+        posts = account.method('wall.get', {
+            'owner_id': group_id,
+            'count': count,
+            'fields': 'domain, lists',
+            'filter': 'all'
+        })
         posts = posts.get('items')
         recent_notes = []
 
@@ -119,7 +124,7 @@ class HomeworkCommand(ICommand):
         td_year, td_week, td_wday = td[0], td[1], td[2]
         result = []
 
-        for note in self.update_posts(self.group_id, count):
+        for note in self.update_posts(self.account, self.group_id, count):
             note_calendar = note.get_calendar()
             nt_year, nt_week, nt_wday = note_calendar[0], note_calendar[1], note_calendar[2]
             if nt_week == td_week and nt_wday >= td_wday:

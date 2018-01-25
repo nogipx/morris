@@ -58,6 +58,9 @@ token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed9
 
 # Creating group-class
 group = GroupManager()
+group.add_activate_time('6:00', '8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00')
+group.add_activate_wday(all_week=True)
+group.add_activate_time('21:28', '21:29')
 group.auth(token)
 bot.set_group_api(group)
 
@@ -88,8 +91,9 @@ ege_day = '18-05-28'
 untill_ege = setup_command(UntillEge, ege_day, time=ue_time, days=ue_days)
 
 # Homework
-hw_time = ('6:00', '20:00')
-hw = setup_command(HomeworkCommand, account, group.group_id, time=hw_time)
+hw = setup_command(HomeworkCommand, account, group.group_id)
+# hw_time = ('6:00', '20:00')
+# hw.add_activate_time(hw_time)
 
 # Help and About
 help = setup_command(HelpCommand)
@@ -98,7 +102,7 @@ about = setup_command(AboutCommand)
 # =================================================================
 # Adding command modules in particular handlers(observers)
 commands = [
-    timetable, ege, untill_ege, help, hw, about
+    about, help, ege, untill_ege, hw, timetable
 ]
 
 command_observer.add_items(*commands)

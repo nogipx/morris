@@ -1,17 +1,24 @@
 from threading import Thread
 
 import vk_api
-
-from modules.group_manager.data_types.User import User
-from modules.interfaces.IGroupManagerImplement import IGroupManagerImplement
-from modules.group_manager.UsersStorage import UsersStorage
 import logging
 
+from modules.group_manager.UsersDatabase import UsersDatabase
+from modules.group_manager.data_types.User import User
+from modules.interfaces.IGroupManagerImplement import IGroupManagerImplement
+from modules.interfaces.ICommand import ICommand
 
-class GroupManager(IGroupManagerImplement):
+
+class GroupManager(IGroupManagerImplement, ICommand):
 
     def __init__(self):
-        self._storage = UsersStorage.get_storage()
+        super().__init__()
+        self.name = 'GroupManagerUpdater'
+        self._storage = UsersDatabase.get_storage('REAL_TEST_DB.db').init_db()
+
+    def proceed(self, *args):
+        self.update_members()
+        return "members updated"
 
     def auth(self, token):
         try:
@@ -27,8 +34,9 @@ class GroupManager(IGroupManagerImplement):
     def set_exclude_ids(self, exclude):
         self._exclude = exclude
 
-    def get_members(self, admins=False):
-        return self._storage.get_users(admins)
+    def get_members_ids(self, admins=False):
+        ids = self._storage.get_users_ids(admins=admins)
+        return ids
 
     def send(self, user_id, message, attachments):
         send_to = int(user_id)
@@ -42,12 +50,12 @@ class GroupManager(IGroupManagerImplement):
         for user in users:
             try:
                 self._vk.method("messages.send", {
-                    'domain': user.domain,
+                    'user_id': user,
                     "message": message,
                     "attachments": attachments
                 })
-            except vk_api.VkApiError as e:
-                pass
+            except vk_api.VkApiError as error:
+                print('{}: {}'.format(user, error))
 
     def get_api(self):
         return self._vk
@@ -64,14 +72,13 @@ class GroupManager(IGroupManagerImplement):
         self._configure_users(self._storage, members)
 
     def _configure_users(self, storage, items, exclude=list()):
+        users = []
         for user in items.get('items'):
             if user.get('id') not in exclude:
                 member = User()
                 member.configure(**user)
-                storage.add_user(member)
-
-    def get_moders_ids(self):
-        return self._storage.admins_ids
+                users.append(member)
+        storage.update(users)
 
     def _setup_group(self):
         group = dict(list(self._vk.method('groups.getById'))[0])

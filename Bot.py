@@ -35,23 +35,22 @@ class Bot:
     def search(self, user_id, message, attachments, event):
         send_accept = 'all'
         to_moders_accept = 'mdr'
-
         if re.findall('{} *$'.format(send_accept), message):
-            if user_id in list(self._group.get_moders_ids()):
+            if user_id in self._group.get_members_ids(admins=True):
                 message = re.sub('{} *$'.format(send_accept), '', message)
                 broadcast = Thread(target=self._group.broadcast, args=(
-                    self._group.get_members(),
+                    self._group.get_members_ids(),
                     message,
                     self.parse_attachments(attachments)
                 ))
                 broadcast.start()
 
         elif re.findall('{} *$'.format(to_moders_accept), message):
-            if user_id in list(self._group.get_moders_ids()):
+            if user_id in list(self._group.get_members_ids(admins=True)):
 
                 message = re.sub('{} *$'.format(to_moders_accept), '', message)
                 broadcast = Thread(target=self._group.broadcast, args=(
-                    self._group.get_members(admins=True),
+                    self._group.get_members_ids(admins=True),
                     message,
                     self.parse_attachments(attachments)
                 ))
@@ -70,7 +69,7 @@ class Bot:
         longpoll = VkLongPoll(self._group.get_api())
         checker = Thread(target=self._checker.execute)
         checker.start()
-        # checker.join()
+        checker.join()
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 self._group.get_api().method('messages.markAsRead', {'peer_id': event.user_id})

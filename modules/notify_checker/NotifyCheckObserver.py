@@ -40,6 +40,7 @@ class NotifyCheckerObserver(IObserver):
                 minute=first_zero(minute))
 
             for command in self._commands:
+                print(command.name, command.activate_times, command.activate_days)
                 if wday in command.activate_days and \
                         ctime in command.activate_times:
                     self._msg_queue.append(command.proceed(*args))
