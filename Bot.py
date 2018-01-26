@@ -17,21 +17,6 @@ class Bot:
     def set_command_checker(self, api):
         self._checker = api
 
-    @staticmethod
-    def parse_attachments(attachments):
-        attach = []
-        result = ''
-        files = attachments
-        amount = 0
-
-        for file in files.keys():
-            if str(file).endswith('type'):
-                amount += 1
-                attach.append((files.get('attach{0}_type'.format(amount)) + files.get('attach{0}'.format(amount))))
-        for i in attach:
-            result += '{},'.format(i)
-        return result
-
     def search(self, user_id, message, attachments, event):
         send_accept = 'all'
         to_moders_accept = 'mdr'
@@ -41,7 +26,7 @@ class Bot:
                 broadcast = Thread(target=self._group.broadcast, args=(
                     self._group.get_members_ids(),
                     message,
-                    self.parse_attachments(attachments)
+                    attachments
                 ))
                 broadcast.start()
 
@@ -52,7 +37,7 @@ class Bot:
                 broadcast = Thread(target=self._group.broadcast, args=(
                     self._group.get_members_ids(admins=True),
                     message,
-                    self.parse_attachments(attachments)
+                    attachments
                 ))
                 broadcast.start()
 

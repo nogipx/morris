@@ -15,7 +15,7 @@ from modules.commands.EgeShellCommand import EgeShellCommand
 from modules.commands.TopicTimetableCommand import TopicTimetableCommand
 
 
-def setup_command(cmd_class, *class_args, all_week=True, **kwargs):
+def setup_command(cmd_class, *class_args, all_week=False, **kwargs):
     cmd_object = cmd_class(*class_args)
     if all_week:
         cmd_object.add_activate_wday(all_week=True)
@@ -58,9 +58,9 @@ token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed9
 
 # Creating group-class
 group = GroupManager()
-group.add_activate_time('6:00', '8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00')
-group.add_activate_wday(all_week=True)
-group.add_activate_time('21:28', '21:29')
+# group.add_activate_time('6:00', '8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00')
+# group.add_activate_wday(all_week=True)
+# group.add_activate_time('21:28', '21:29')
 group.auth(token)
 bot.set_group_api(group)
 

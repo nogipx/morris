@@ -1,10 +1,7 @@
 class User:
-    def __init__(self):
-        self.id = ""
-        self.domain = ""
-        self.first_name = ""
-        self.last_name = ""
-        self.role = ""
+    def __init__(self, **kwargs):
+        for key in kwargs:
+            self.__setattr__(key, kwargs.get(key))
         self.session_thread = None
 
     def get_name(self):
