@@ -78,7 +78,7 @@ notify_observer.set_group(group)
 # Setup commands
 time = '18:05'
 # Timetable
-tt_time = ('7:00', '20:00')
+tt_time = ('20:00')
 timetable = setup_command(TopicTimetableCommand, group.group_id, account, time=tt_time)
 
 # Ege shell
