@@ -35,8 +35,7 @@ class TopicTimetableCommand(ICommand):
         topics = self._account.method('board.getTopics', {
             'group_id': group_id,
             'preview': 1,
-            'preview_length': 0,
-            'order': 2
+            'preview_length': 0
         })
         items = topics.get('items')
         timetable_title = ['Расписание', 'Timetable']
