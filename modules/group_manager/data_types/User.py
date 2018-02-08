@@ -32,12 +32,3 @@ class User:
             user += '\n'
         user += '-' * 20 + '\n'
         return user
-
-if __name__ == '__main__':
-    import vk_api
-    token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
-    group = vk_api.VkApi(token=token)
-    print(group.method('groups.getMembers', {
-        'group_id': 'test11aof',
-        'fields': 'domain, role'
-    }))
