@@ -1,4 +1,4 @@
-from modules.interfaces.ICommand import ICommand
+from modules.commands.interface.ICommand import ICommand
 
 
 class AboutCommand(ICommand):
@@ -7,8 +7,9 @@ class AboutCommand(ICommand):
         super().__init__()
         self._triggers = ['about', 'About']
 
-    def proceed(self, *args):
-        about = """
+    def proceed(self, *args, **kwargs):
+        if len(args) > 0 and args[1] in self._triggers:
+            about = """
 (C) Morris Bot, 2018
 
 Моррис изначально представлялся в воображении обычным скриптом на ~100-200 строк, который только и может, что пересылать сообщения от администраторов. 
@@ -23,4 +24,5 @@ class AboutCommand(ICommand):
 
 Developed by Mamatkazin Karim, г.Сочи
         """
-        return about
+            return about
+        return False

@@ -16,5 +16,6 @@ class IObserver(metaclass=ABCMeta):
         for arg in args:
             self._commands.append(arg)
 
-    def execute(self, *args):
-        raise NotImplementedError()
+    @abstractmethod
+    def execute(self, *args, **kwargs):
+        pass

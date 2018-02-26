@@ -1,4 +1,4 @@
-from modules.interfaces.ICommand import ICommand
+from modules.commands.interface.ICommand import ICommand
 import datetime
 
 
@@ -14,14 +14,14 @@ class TopicTimetableCommand(ICommand):
         self._group_id = group_id
         self.update()
 
-    def proceed(self, *args):
+    def proceed(self, *args, **kwargs):
         if len(args) > 0 and args[1]:
             command = args[1]
             if command in self._short_tt:
                 return self.get_short_timetable()
             if command in self._full_tt:
                 return self.get_full_timetable()
-        return self.get_short_timetable()
+        return False
 
     def setup_bot_account(self, account):
         self._account = account
@@ -35,8 +35,10 @@ class TopicTimetableCommand(ICommand):
         topics = self._account.method('board.getTopics', {
             'group_id': group_id,
             'preview': 1,
-            'preview_length': 0
+            'preview_length': 0,
+            'order': 2
         })
+
         items = topics.get('items')
         timetable_title = ['Расписание', 'Timetable']
         for topic in items:

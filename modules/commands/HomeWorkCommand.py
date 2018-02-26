@@ -1,6 +1,6 @@
 import re
 import datetime
-from modules.interfaces.ICommand import ICommand
+from modules.commands.interface.ICommand import ICommand
 
 
 class Note:
@@ -59,8 +59,10 @@ class HomeworkCommand(ICommand):
         self.recent_notes = []
         self.last_id = 0
 
-    def proceed(self, *args):
-        return self.week()
+    def proceed(self, *args, **kwargs):
+        if len(args) > 0 and args[1] in self._triggers:
+            return self.week()
+        return False
 
     def sort(self, result):
         return sorted(result, key=self.sortByDate)

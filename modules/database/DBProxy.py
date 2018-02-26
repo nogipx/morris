@@ -1,4 +1,4 @@
-from modules.interfaces.IStorage import IStorage
+from modules.database.interfaces.IStorage import IStorage
 
 
 class DBProxy(IStorage):
@@ -26,6 +26,9 @@ class DBProxy(IStorage):
 
     def get_users_ids(self, **kwargs):
         return self._db.get_members_ids(**kwargs)
+
+    def get_member(self, uid):
+        return self._db.get_member(uid)
 
 if __name__ == '__main__':
     db = DBProxy()

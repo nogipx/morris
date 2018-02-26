@@ -1,4 +1,4 @@
-from modules.interfaces.IShell import IShell
+from modules.commands.interface.IShell import IShell
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 
@@ -21,9 +21,11 @@ class EgeShell(IShell):
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 self._group.get_api().method('messages.markAsRead', {'peer_id': event.user_id})
                 if event.text in ['exit', 'Exit']:
-                    self._user.session_thread = None
+                    # TODO сделать адекватную блокировку и проверку id пользоваьеля
+                    # не нормально то, что блокировка потока снимается не в том же классе, в которой установилась
+                    # сообщение выхода разошлется даже если сессия не запускалась
                     self.exit_message()
-                    break
+                    return False
 
     def greeting_message(self):
         greet_msg = 'Добрый день {}. \n' \

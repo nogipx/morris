@@ -1,18 +1,22 @@
-import argparse, configparser
-from Bot import Bot
+from EventHandler import EventHandler
 from BotAccount import BotAccount
-from modules.interfaces.IObserver import IObserver
-from modules.group_manager.GroupManager import GroupManager
+from modules.commands.interface.IObserver import IObserver
+from modules.group_manager.Group import Group
 
-from modules.notify_checker.UntillEge import UntillEge
-from modules.notify_checker.NotifyCheckObserver import NotifyCheckerObserver
+from modules.commands.UntillEgeCommand import UntillEge
+from modules.commands.observers.NotifyCheckObserver import NotifyCheckerObserver
 
 from modules.commands.HelpCommand import HelpCommand
 from modules.commands.AboutCommand import AboutCommand
-from modules.commands.CommandObserver import CommandObserver
+from modules.commands.observers.CommandObserver import CommandObserver
 from modules.commands.HomeworkCommand import HomeworkCommand
 from modules.commands.EgeShellCommand import EgeShellCommand
 from modules.commands.TopicTimetableCommand import TopicTimetableCommand
+
+from modules.database.UserORM import Member
+from modules.database.DBProxy import DBProxy
+
+import argparse
 
 
 def setup_command(cmd_class, *class_args, all_week=False, **kwargs):
@@ -52,22 +56,28 @@ def weekdays(*wdays):
     return result
 
 
-bot = Bot()
-token = '7134ec6b881f83f140dcbdd6a0e0e3001300a2b9f69bc5d13341d0bf650797564141ed907b2dcf8df1e93'
-# token = 'fc9d1694e5e9ca322c9fd6183c234b131db64335708a8c82856e8b9a14956184fc89e9863f16c54db2d08'
+parser = argparse.ArgumentParser('Settings for Morris Bot')
+parser.add_argument('-T', '--token', help='Token which you got from your group admin.')
+parser.add_argument('-Pl', '--parser-login',
+                    help='Login for your bot-account. Opens new feature like a parsing timetable')
+parser.add_argument('-Pp', '--parser-password',
+                    help='Password for your bot-account.')
+args = vars(parser.parse_args())
+
+
+bot = EventHandler()
+token = args.get('token')
 
 # Creating group-class
-group = GroupManager()
-# group.add_activate_time('6:00', '8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00')
-# group.add_activate_wday(all_week=True)
-# group.add_activate_time('21:28', '21:29')
+group = Group()
 group.auth(token)
-bot.set_group_api(group)
+group.connect_storage(DBProxy(Member))
+
+bot.set_group(group)
 
 # Setup account for bot. This is need for parsing group wall and timetable
 account = BotAccount.get_account()
-account.auth('89884095357', 'HokingBH98')
-bot.set_account_api(account)
+account.auth(args.get('parser-login'), args.get('parser-password'))
 
 # Setup observers that handle commands
 command_observer = IObserver.get_observer(CommandObserver)
@@ -78,8 +88,8 @@ notify_observer.set_group(group)
 # Setup commands
 time = '18:05'
 # Timetable
-tt_time = ('20:00')
-timetable = setup_command(TopicTimetableCommand, group.group_id, account, time=tt_time)
+tt_time = ('7:00', '20:00')
+# timetable = setup_command(TopicTimetableCommand, group.group_id, account, time=tt_time)
 
 # Ege shell
 ege = setup_command(EgeShellCommand, group)
@@ -102,7 +112,7 @@ about = setup_command(AboutCommand)
 # =================================================================
 # Adding command modules in particular handlers(observers)
 commands = [
-    about, help, ege, untill_ege, hw, timetable
+    about, help, ege, untill_ege, hw, #timetable
 ]
 
 command_observer.add_items(*commands)

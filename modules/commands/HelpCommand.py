@@ -1,4 +1,4 @@
-from modules.interfaces.ICommand import ICommand
+from modules.commands.interface.ICommand import ICommand
 
 
 class HelpCommand(ICommand):
@@ -7,7 +7,7 @@ class HelpCommand(ICommand):
         super().__init__()
         self._triggers = ['help', 'Help']
 
-    def proceed(self, *args):
+    def proceed(self, *args, **kwargs):
         print('PROCEED_HELP: ', args)
         if len(args) > 2 and args[2]:
             sub_cmd = args[2]
@@ -15,7 +15,9 @@ class HelpCommand(ICommand):
                 return self.help_ege()
             elif sub_cmd == 'me':
                 return self.help_me()
-        return self.all_commands()
+        elif len(args) == 2:
+            return self.all_commands()
+        return False
 
     def all_commands(self):
         commands = """

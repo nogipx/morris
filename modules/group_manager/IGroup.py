@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class IGroupManager(metaclass=ABCMeta):
+class IGroup(metaclass=ABCMeta):
 
     @abstractmethod
     def auth(self, token):

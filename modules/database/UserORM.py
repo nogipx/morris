@@ -1,5 +1,4 @@
 from peewee import *
-from modules.group_manager.data_types.User import User
 
 name_db = 'UsersDatabase.db'
 

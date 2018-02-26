@@ -9,7 +9,7 @@ class ICommand(metaclass=ABCMeta):
         self.activate_days = set()
 
     @abstractmethod
-    def proceed(self, *args):
+    def proceed(self, *args, **kwargs):
         """
         :param args:
         - First arg always is 'user_id'
@@ -38,19 +38,19 @@ class ICommand(metaclass=ABCMeta):
             return
 
         for day in days:
-            if day > 7:
-                day = 7
+            if day > 6:
+                day = 6
             elif day < 0:
                 day = 0
             self.activate_days.add(day)
 
-    def handle(self, user_id, message):
+    def handle(self, user_id, message, **kwargs):
         cmd = message.split()
-        for key in cmd:
-            if key in self._triggers:
-                func = cmd[0]
+        for part in cmd:
+            if part in self._triggers:
+                func = part
                 func_args = cmd[1:]
-                return self.proceed(user_id, func, *func_args)
+                return self.proceed(user_id, func, *func_args, **kwargs)
         return None
 
     def generate_name(self):
