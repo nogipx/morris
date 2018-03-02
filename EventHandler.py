@@ -1,6 +1,7 @@
 from vk_api.longpoll import VkLongPoll, VkEventType
 from collections import deque
 from threading import Thread
+from multiprocessing import Process
 import re
 
 
@@ -8,8 +9,8 @@ class EventHandler:
 
     def __init__(self):
         self._longpoll = None
-        self.admin_kw = 'mdr'
-        self.members_kw = 'all'
+        self.admin_kw = '/mdr'
+        self.members_kw = '/all'
         self._locked_users = []
         self._broadcast_queue = deque()
         self._dialogs_in_thread = []
@@ -41,39 +42,42 @@ class EventHandler:
                 self.handle_event(event.user_id, event.text, event.attachments)
 
     def handle_event(self, user_id, message, attachments):
-        admins_ids = self._group.get_members_ids(admins=True)
-
         def search(kw):
-            return re.search('{} *$'.format(kw), message)
+            reg = '^/*{}'.format(kw)
+            exist = re.search(reg, message)
+            return exist
 
         def sub(kw):
-            return re.sub('{} *$'.format(kw), message)
+            reg = '^/*{}'.format(kw)
+            msg = re.sub(reg, '', message)
+            return msg
 
+        admins_ids = self._group.get_member_ids(admins=True)
         destination = []
-        if search(self.admin_kw):
-            destination = admins_ids
-            message = sub(self.admin_kw)
-        elif search(self.members_kw):
-            destination = self._group.get_members_ids()
-            message = sub(self.members_kw)
+        if user_id in admins_ids:
+            destination = []
+            if search(self.admin_kw):
+                destination = admins_ids
+                message = sub(self.admin_kw)
+            elif search(self.members_kw):
+                destination = self._group.get_member_ids()
+                message = sub(self.members_kw)
 
-        if user_id in admins_ids and destination:
-            broadcast = Thread(target=self._group.broadcast,
-                               args=(destination, message, attachments))
+        if destination:
+            broadcast = Thread(target=self._group.broadcast, args=(destination, message, attachments))
             self._broadcast_queue.append(broadcast)
+
         else:
             member = self._group.get_member(user_id)
-            self.lock_user(member.id)
+            # self.lock_user(member.id)
             response = self._observer.execute(member, message, unlock=self.unlock_user)
-            if response == 'IGNORE':
-                return
             if response:
                 self._group.get_api().method('messages.setActivity', {
                     'user_id': user_id,
                     'type': 'typing'
                 })
                 self._group.send(user_id, response, attachments)
-                self.unlock_user(member.id)
+                # self.unlock_user(member.id)
 
 if __name__ == '__main__':
     handler = EventHandler()
