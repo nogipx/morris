@@ -17,6 +17,7 @@ class Member(Model):
     first_name = CharField()
     last_name = CharField()
     role = CharField(null=True)
+    sex = IntegerField()
 
     class Meta:
         db_table = "Member"
@@ -48,20 +49,34 @@ class Member(Model):
         user = Member.select(*args).where(Member.id == user_id).get()
         return user
 
+    # 2 - Male
+    # 1 - Female
+    # 0 - All
     @staticmethod
-    def get_members_ids(admins=False, editors=False, moders=False):
-        if admins:
+    def get_members_ids(admins=False, editors=False, moders=False, sex=0):
+        query = Member.select()
+        if sex == 0:
+            if admins:
+                query = Member.select().where(
+                    (Member.role == 'administrator') |
+                    (Member.role == 'creator'))
+
+            elif editors:
+                query = Member.select().where(
+                    Member.role == 'editor')
+
+            elif moders:
+                query = Member.select().where(
+                    Member.role == 'moderator')
+
+        elif sex == 1:
             query = Member.select().where(
-                (Member.role == 'administrator') |
-                (Member.role == 'creator'))
-        elif editors:
+                Member.sex == sex)
+
+        elif sex == 2:
             query = Member.select().where(
-                Member.role == 'editor')
-        elif moders:
-            query = Member.select().where(
-                Member.role == 'moderator')
-        else:
-            query = Member.select()
+                Member.sex == sex)
+
         return [user.id for user in query]
 
     def get_commands(self):
