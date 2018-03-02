@@ -17,7 +17,7 @@ class ICommand(metaclass=ABCMeta):
         - Other args are internal params for command
         :return:
         """
-        pass
+        raise NotImplementedError()
 
     def clear(self, *args):
         if 'times' in args:
@@ -45,11 +45,10 @@ class ICommand(metaclass=ABCMeta):
             self.activate_days.add(day)
 
     def handle(self, user_id, message, **kwargs):
-        cmd = message.split()
-        for part in cmd:
+        for part in message:
             if part in self._triggers:
                 func = part
-                func_args = cmd[1:]
+                func_args = message[1:]
                 return self.proceed(user_id, func, *func_args, **kwargs)
         return None
 

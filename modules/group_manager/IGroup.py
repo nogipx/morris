@@ -16,7 +16,7 @@ class IGroup(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_members_ids(self, category):
+    def get_member_ids(self, category):
         pass
 
     @abstractmethod
@@ -28,7 +28,7 @@ class IGroup(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def broadcast(self, users, message, attachments):
+    def broadcast(self, users, message, attachments, sender_id=0):
         pass
 
     @abstractmethod
