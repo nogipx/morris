@@ -30,7 +30,7 @@ class Group(IGroup):
         self.group_id = group.get("id")
 
     def update_members(self):
-        fields = 'domain'
+        fields = 'domain, sex'
 
         def api_get_members(vk, **kwargs):
             return vk.method('groups.getMembers', kwargs)
@@ -55,33 +55,42 @@ class Group(IGroup):
                 users.append(member)
         return users
 
-    def get_members_ids(self, admins=False):
-        ids = self._storage.get_users_ids(admins=admins)
+    def get_member_ids(self, admins=False, sex=0):
+        ids = self._storage.get_users_ids(admins=admins, sex=sex)
         return ids
 
     def get_member(self, uid):
         member = self._storage.get_member(uid)
         print(member.id, member.domain)
         user = User()
-        user.__setattr__('id', member.id)
-        user.__setattr__('domain', member.domain)
-        user.__setattr__('first_name', member.first_name)
-        user.__setattr__('last_name', member.last_name)
-        user.__setattr__('role', member.role)
+        for field in member._data:
+            user.__setattr__(field, member._data.get(field))
+        print(user)
         return user
+
+    def delete(self, msg_id):
+        self._vk.method('messages.delete', {
+            'message_id': msg_id,
+            'delete_for_all': 1})
 
     def send(self, user_id, message, attachments):
         print('SEND', user_id, message, attachments)
         send_to = int(user_id)
+
         self._vk.method('messages.send', {
             'user_id': send_to,
             'message': message,
             'attachment': self._parse_attachments(attachments)
         })
 
-    def broadcast(self, users_ids, message, attachments):
+    def broadcast(self, users_ids, message, attachments, sender_id=0):
+        if not message:
+            return
+
         for user_id in users_ids:
             try:
+                if user_id == sender_id:
+                    message = 'Sended'
                 self._vk.method("messages.send", {
                     'user_id': user_id,
                     "message": message,
@@ -89,6 +98,8 @@ class Group(IGroup):
                 })
             except vk_api.VkApiError as error:
                 print('{}: {}'.format(user_id, error))
+            except ValueError:
+                continue
 
     @staticmethod
     def _parse_attachments(attachments):
@@ -110,3 +121,6 @@ class Group(IGroup):
 
     def get_api(self):
         return self._vk
+
+    def method(self, func, args):
+        return self._vk.method(func, args)
