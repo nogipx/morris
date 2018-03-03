@@ -43,7 +43,7 @@ class NotifyCheckerObserver(IObserver):
                 print(command.name, command.activate_times, command.activate_days)
                 if wday in command.activate_days and \
                         ctime in command.activate_times:
-                    self._msg_queue.append(command.proceed(*args))
+                    self._msg_queue.append(command.autostart_func(*args))
 
             while len(self._msg_queue) > 0:
                 message = self._msg_queue.popleft()
