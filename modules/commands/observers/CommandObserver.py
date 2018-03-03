@@ -9,6 +9,6 @@ class CommandObserver(IObserver):
         result = None
         message = message.split()
         for command in self._commands:
-            if not result:
+            if message[0] in command.triggers:
                 result = command.handle(user_id, message, *args, **kwargs)
         return result

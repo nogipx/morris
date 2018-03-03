@@ -4,9 +4,10 @@ from abc import ABCMeta, abstractmethod
 class ICommand(metaclass=ABCMeta):
 
     def __init__(self):
-        self._triggers = []
+        self.triggers = []
         self.activate_times = []
         self.activate_days = set()
+        self.autostart_func = self.proceed
 
     @abstractmethod
     def proceed(self, *args, **kwargs):
@@ -46,11 +47,11 @@ class ICommand(metaclass=ABCMeta):
 
     def handle(self, user_id, message, **kwargs):
         for part in message:
-            if part in self._triggers:
+            if part in self.triggers:
                 func = part
                 func_args = message[1:]
                 return self.proceed(user_id, func, *func_args, **kwargs)
         return None
 
     def generate_name(self):
-        self.name = self._triggers[0]
+        self.name = self.triggers[0]
