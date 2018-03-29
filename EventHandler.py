@@ -2,18 +2,21 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from collections import deque
 from threading import Thread
 from multiprocessing import Process
+from modules.commands.observers.NotifyCheckObserver import NotifyCheckerObserver
 import re
 
 
 class EventHandler:
 
     def __init__(self):
+        super().__init__()
         self._longpoll = None
         self.admin_kw = '/mdr'
         self.members_kw = '/all'
         self._locked_users = []
         self._broadcast_queue = deque()
         self._dialogs_in_thread = []
+        self._notifyer_thread = None
 
     def set_group(self, api):
         self._group = api
@@ -36,10 +39,18 @@ class EventHandler:
         self._locked_users.remove(user_id)
 
     def listen(self):
-        for event in self._longpoll.listen():
-            if event.user_id not in self._locked_users and event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                self._group.get_api().method('messages.markAsRead', {'peer_id': event.user_id})
-                self.handle_event(event.user_id, event.text, event.attachments)
+        self._notifyer_thread = Thread(target=self._checker.execute)
+        self._notifyer_thread.start()
+        try:
+            for event in self._longpoll.listen():
+                if event.user_id not in self._locked_users and event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                    self._group.get_api().method('messages.markAsRead', {'peer_id': event.user_id})
+                    self.handle_event(event.user_id, event.text, event.attachments)
+        except ConnectionError:
+            import datetime
+            print("I HAD BEEN DOWNED IN {}".format(datetime.datetime.today()))
+            self._longpoll.update_longpoll_server()
+            pass
 
     def handle_event(self, user_id, message, attachments):
         def search(kw):
@@ -78,6 +89,7 @@ class EventHandler:
                 })
                 self._group.send(user_id, response, attachments)
                 # self.unlock_user(member.id)
+
 
 if __name__ == '__main__':
     handler = EventHandler()

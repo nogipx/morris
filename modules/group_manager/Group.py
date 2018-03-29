@@ -3,6 +3,7 @@ import logging
 
 from modules.group_manager.data_types.User import User
 from modules.group_manager.IGroup import IGroup
+from threading import Thread
 
 
 class Group(IGroup):
@@ -68,38 +69,48 @@ class Group(IGroup):
         print(user)
         return user
 
-    def delete(self, msg_id):
+    def delete(self, msg_id, destroy_type=1):
         self._vk.method('messages.delete', {
             'message_id': msg_id,
-            'delete_for_all': 1})
+            'delete_for_all': destroy_type})
 
-    def send(self, user_id, message, attachments):
-        print('SEND', user_id, message, attachments)
+    def send(self, user_id, message, attachments=None, forward=None, destroy=False, destroy_type=0):
+        # print('SEND', user_id, message, attachments)
         send_to = int(user_id)
+        if message or attachments:
+            self._vk.method('messages.send', {
+                'user_id': send_to,
+                'message': message,
+                'attachment': self._parse_attachments(attachments),
+                'forward_messages': forward})
 
-        self._vk.method('messages.send', {
-            'user_id': send_to,
-            'message': message,
-            'attachment': self._parse_attachments(attachments)
-        })
+        else:
+            raise vk_api.VkApiError('There are not message and attachment.')
 
-    def broadcast(self, users_ids, message, attachments, sender_id=0):
+        if destroy:
+            accept_msg_id = self._vk.method('messages.getHistory', {
+                'peer_id': user_id,
+                'count': 1
+            }).get('items')[0].get('id')
+            self.delete(accept_msg_id, destroy_type=destroy_type)
+
+    def broadcast(self, users_ids, message, attachments=None, forward=None, destroy=False, destroy_type=0):
         if not message:
             return
 
-        for user_id in users_ids:
-            try:
-                if user_id == sender_id:
-                    message = 'Sended'
-                self._vk.method("messages.send", {
-                    'user_id': user_id,
-                    "message": message,
-                    "attachments": self._parse_attachments(attachments)
-                })
-            except vk_api.VkApiError as error:
-                print('{}: {}'.format(user_id, error))
-            except ValueError:
-                continue
+        def send_all(msg, destroy, delete_for_all):
+            for user_id in users_ids:
+                try:
+                    self.send(user_id, msg, attachments,
+                              forward=forward, destroy=destroy, destroy_type=delete_for_all)
+                except vk_api.VkApiError as error:
+                    print('{}: {}'.format(user_id, error))
+                except ValueError:
+                    continue
+
+        broadcast_thread = Thread(target=send_all, args=(message, destroy, destroy_type))
+        broadcast_thread.start()
+        print("BROADCAST THREAD STARTED")
 
     @staticmethod
     def _parse_attachments(attachments):
@@ -108,7 +119,7 @@ class Group(IGroup):
         files = attachments
         amount = 0
 
-        if attachments is None:
+        if not attachments:
             return
 
         for file in files.keys():
