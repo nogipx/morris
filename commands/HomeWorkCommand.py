@@ -1,6 +1,6 @@
 import re
 import datetime
-from modules.commands.interface.ICommand import ICommand
+from commands.interface import ICommand
 
 
 class Note:

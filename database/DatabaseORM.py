@@ -41,13 +41,11 @@ class Member(Model):
 
     @staticmethod
     def delete_member(user_id):
-        delete = Member.delete().where(Member.id == user_id)
-        delete.execute()
+        Member.delete().where(Member.id == user_id).execute()
 
     @staticmethod
     def get_member(user_id, *args):
-        user = Member.select(*args).where(Member.id == user_id).get()
-        return user
+        return Member.select(*args).where(Member.id == user_id).get()
 
     # 2 - Male
     # 1 - Female

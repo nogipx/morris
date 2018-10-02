@@ -1,20 +1,19 @@
-from EventHandler import EventHandler
-from BotAccount import BotAccount
-from modules.commands.interface.IObserver import IObserver
-from modules.group_manager.Group import Group
+from core.handlers.EventHandler import EventHandler
+from vk_communicate.BotAccount import BotAccount
+from commands.interface import IObserver
+from vk_communicate.group_manager import Group
 
-from modules.commands.UntillEgeCommand import UntillEge
-from modules.commands.observers.NotifyCheckObserver import NotifyCheckerObserver
+from commands import UntillEge
+from core.observers import NotifyCheckerObserver
 
-from modules.commands.HelpCommand import HelpCommand
-from modules.commands.AboutCommand import AboutCommand
-from modules.commands.observers.CommandObserver import CommandObserver
-from modules.commands.HomeworkCommand import HomeworkCommand
-from modules.commands.EgeShellCommand import EgeShellCommand
-from modules.commands.TopicTimetableCommand import TopicTimetableCommand
+from commands import HelpCommand
+from commands.AboutCommand import AboutCommand
+from core.observers import CommandObserver
+from commands import HomeworkCommand
+from commands import EgeShellCommand
 
-from modules.database.UserORM import Member
-from modules.database.DBProxy import DBProxy
+from database import Member
+from database.DBProxy import DBProxy
 
 import argparse
 

@@ -1,5 +1,5 @@
-from modules.commands.interface.IObserver import IObserver
-import re
+from commands.interface.IObserver import IObserver
+
 
 class CommandObserver(IObserver):
 

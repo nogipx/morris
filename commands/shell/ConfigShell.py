@@ -1,4 +1,4 @@
-from modules.commands.interface.IShell import IShell
+from commands.interface import IShell
 
 
 class ConfigShell(IShell):

@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class IStorage(metaclass=ABCMeta):
+class StorageInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def update(self, update_users):

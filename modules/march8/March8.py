@@ -1,6 +1,6 @@
 import time
 
-from modules.commands.interface.ICommand import ICommand
+from commands.interface import ICommand
 from threading import Timer, Thread
 import datetime
 import pickle

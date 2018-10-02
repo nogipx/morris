@@ -1,6 +1,5 @@
-from modules.commands.interface.ICommand import ICommand
-from modules.commands.shell.EgeShell import EgeShell
-from modules.database.old.UsersStorage import UsersStorage
+from commands.interface import ICommand
+from commands.shell.EgeShell import EgeShell
 from threading import Thread
 
 

@@ -1,4 +1,4 @@
-from modules.commands.interface.IObserver import IObserver
+from commands.interface import IObserver
 from collections import deque
 import datetime
 import time
@@ -53,7 +53,7 @@ class NotifyCheckerObserver(IObserver):
 
 
 if __name__ == '__main__':
-    from modules.commands.UntillEgeCommand import UntillEge
+    from commands import UntillEge
     notify_observer = NotifyCheckerObserver()
     notify_observer.add_items(UntillEge('18-05-28'))
     notify_observer.execute()

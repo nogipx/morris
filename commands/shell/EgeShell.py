@@ -1,4 +1,4 @@
-from modules.commands.interface.IShell import IShell
+from commands.interface import IShell
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 
