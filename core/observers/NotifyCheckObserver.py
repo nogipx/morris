@@ -1,10 +1,10 @@
-from commands.interface import IObserver
 from collections import deque
+from core.observers.AbstractObserver import AbstractObserver
 import datetime
 import time
 
 
-class NotifyCheckerObserver(IObserver):
+class NotifyCheckerObserver(AbstractObserver):
 
     __instance__ = None
 
@@ -39,7 +39,7 @@ class NotifyCheckerObserver(IObserver):
                 hour=hour,
                 minute=first_zero(minute))
 
-            for command in self._commands:
+            for command in self.commands:
                 # print(command.name, command.activate_times, command.activate_days)
                 if wday in command.activate_days and \
                         ctime in command.activate_times:
@@ -54,6 +54,7 @@ class NotifyCheckerObserver(IObserver):
 
 if __name__ == '__main__':
     from commands import UntillEge
+
     notify_observer = NotifyCheckerObserver()
-    notify_observer.add_items(UntillEge('18-05-28'))
+    notify_observer.add(UntillEge('18-05-28'))
     notify_observer.execute()

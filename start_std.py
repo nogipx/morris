@@ -1,10 +1,9 @@
 from core.handlers.EventHandler import EventHandler
 from vk_communicate.BotAccount import BotAccount
-from commands.interface import IObserver
 from vk_communicate.group_manager import Group
 
 from commands import UntillEge
-from core.observers import NotifyCheckerObserver
+from core.observers import NotifyCheckerObserver, AbstractObserver
 
 from commands import HelpCommand
 from commands.AboutCommand import AboutCommand
@@ -79,8 +78,8 @@ account = BotAccount.get_account()
 account.auth(args.get('parser-login'), args.get('parser-password'))
 
 # Setup observers that handle commands
-command_observer = IObserver.get_observer(CommandObserver)
-notify_observer = IObserver.get_observer(NotifyCheckerObserver)
+command_observer = AbstractObserver.get_observer(CommandObserver)
+notify_observer = AbstractObserver.get_observer(NotifyCheckerObserver)
 notify_observer.set_group(group)
 
 # =================================================================
@@ -114,9 +113,9 @@ commands = [
     about, help, ege, untill_ege, hw, #timetable
 ]
 
-command_observer.add_items(*commands)
+command_observer.add(*commands)
 
-notify_observer.add_items(*commands)
+notify_observer.add(*commands)
 
 # Adding observers into bot
 bot.set_command_observer(command_observer)

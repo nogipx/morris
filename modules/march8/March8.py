@@ -1,6 +1,6 @@
 import time
 
-from commands.interface import ICommand
+from commands import Command
 from threading import Timer, Thread
 import datetime
 import pickle
@@ -35,7 +35,7 @@ PREVIEW_LENGTH = 50
 ADMINS = [257408307, ]
 
 
-class March8(ICommand):
+class March8(Command):
 
     def __init__(self, group):
         super().__init__()

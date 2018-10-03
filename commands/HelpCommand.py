@@ -1,13 +1,13 @@
-from commands.interface import ICommand
+from commands import Command
 
 
-class HelpCommand(ICommand):
+class HelpCommand(Command):
 
     def __init__(self):
         super().__init__()
         self._triggers = ['help', 'Help']
 
-    def proceed(self, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         print('PROCEED_HELP: ', args)
         if len(args) > 2 and args[2]:
             sub_cmd = args[2]

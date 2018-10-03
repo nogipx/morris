@@ -1,7 +1,8 @@
+import re
 from abc import ABCMeta, abstractmethod
 
 
-class ICommand(metaclass=ABCMeta):
+class Command(metaclass=ABCMeta):
 
     def __init__(self):
         self.triggers = []
@@ -9,8 +10,7 @@ class ICommand(metaclass=ABCMeta):
         self.activate_days = set()
         self.autostart_func = self.proceed
 
-    @abstractmethod
-    def proceed(self, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         """
         :param args:
         - First arg always is 'user_id'
@@ -55,3 +55,13 @@ class ICommand(metaclass=ABCMeta):
 
     def generate_name(self):
         self.name = self.triggers[0]
+
+    def will_triggered(self, kw, message):
+        reg = '^{}'.format(kw)
+        exist = re.search(reg, message)
+
+        return bool(exist)
+
+    def get_body(self, kw, message):
+        reg = '^{}'.format(kw)
+        return re.sub(reg, '', message)

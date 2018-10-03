@@ -1,8 +1,8 @@
-from commands.interface import ICommand
+from commands.Command import Command
 import datetime
 
 
-class TopicTimetableCommand(ICommand):
+class TopicTimetableCommand(Command):
 
     def __init__(self, group_id, account):
         super().__init__()
@@ -14,7 +14,7 @@ class TopicTimetableCommand(ICommand):
         self._group_id = group_id
         self.update()
 
-    def proceed(self, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         if len(args) > 0 and args[1]:
             command = args[1]
             if command in self._short_tt:

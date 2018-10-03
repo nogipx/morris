@@ -1,13 +1,13 @@
-from commands.interface import ICommand
+from commands import Command
 
 
-class AboutCommand(ICommand):
+class AboutCommand(Command):
 
     def __init__(self):
         super().__init__()
         self._triggers = ['about', 'About']
 
-    def proceed(self, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         if len(args) > 0 and args[1] in self._triggers:
             about = """
 (C) Morris Bot, 2018

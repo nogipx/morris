@@ -1,6 +1,6 @@
 import re
 import datetime
-from commands.interface import ICommand
+from commands import Command
 
 
 class Note:
@@ -49,7 +49,7 @@ class Note:
         return self.date.isocalendar()
 
 
-class HomeworkCommand(ICommand):
+class HomeworkCommand(Command):
 
     def __init__(self, bot_account, group_id):
         super().__init__()
@@ -59,7 +59,7 @@ class HomeworkCommand(ICommand):
         self.recent_notes = []
         self.last_id = 0
 
-    def proceed(self, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         if len(args) > 0 and args[1] in self._triggers:
             return self.week()
         return False

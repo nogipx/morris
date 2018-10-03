@@ -1,16 +1,16 @@
-from commands.interface import ICommand
+from commands import Command
 from commands.shell.EgeShell import EgeShell
 from threading import Thread
 
 
-class EgeShellCommand(ICommand):
+class EgeShellCommand(Command):
 
     def __init__(self, group):
         super().__init__()
         self._triggers = ['ege', 'Ege']
         self._group = group
 
-    def proceed(self, user, command, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         command = command.split()
         if user and (command[0] in self._triggers):
             shell = EgeShell(self._group, user)

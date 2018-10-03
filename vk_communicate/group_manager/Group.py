@@ -3,7 +3,7 @@ import logging
 
 from vk_communicate.BaseCommunicateVK import BaseCommunicateVK
 from vk_communicate.group_manager.data_types.User import User
-from vk_communicate.group_manager import IGroup
+from vk_communicate.group_manager import GroupInterface
 from threading import Thread
 
 
@@ -31,14 +31,14 @@ class Group(BaseCommunicateVK):
         fields = 'domain, sex'
 
         admins = self.api.groups.getMembers(group_id=self.group_id, fields=fields, filter='managers')
-        self._put_into_storage(self._configure_users(admins))
+        self.save_members(self._configure_users(admins))
 
         members = self.api.groups.getMembers(group_id=self.group_id, fields=fields)
-        self._put_into_storage(self._configure_users(members))
+        self.save_members(self._configure_users(members))
 
         return self
 
-    def _put_into_storage(self, members):
+    def save_members(self, members):
         self.storage.update(members)
 
     # Было бы лучше, если бы пользователи добавлялись напрямую в бд, а не через дополнительный класс
@@ -68,10 +68,8 @@ class Group(BaseCommunicateVK):
         print(member.id, member.domain)
         user = User()
 
-        for field in member._data:
-            user.__setattr__(field, member._data.get(field))
-
-        print(user)
+        for (field, value) in dict(member.__data__).items():
+            user.__setattr__(field, value)
 
         return user
 

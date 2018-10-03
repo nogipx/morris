@@ -1,8 +1,8 @@
-from commands.interface import ICommand
+from commands import Command
 import datetime
 
 
-class UntillEge(ICommand):
+class UntillEge(Command):
 
     def __init__(self, ege_date):
         super().__init__()
@@ -10,7 +10,7 @@ class UntillEge(ICommand):
         self.ege_day = datetime.datetime.strptime(ege_date, '%y-%m-%d')
         self.ege_yday = self.ege_day.timetuple().tm_yday
 
-    def proceed(self, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, *args, **kwargs):
         if len(args) > 0 and args[1] in self._triggers:
             today = datetime.date.today().timetuple()
             month = today.tm_mon
