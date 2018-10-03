@@ -1,11 +1,13 @@
 import re
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 
 class Command(metaclass=ABCMeta):
 
     def __init__(self):
         self.triggers = []
+        self.description = "Empty description."
+
         self.activate_times = []
         self.activate_days = set()
         self.autostart_func = self.proceed
@@ -56,12 +58,27 @@ class Command(metaclass=ABCMeta):
     def generate_name(self):
         self.name = self.triggers[0]
 
-    def will_triggered(self, kw, message):
+    @staticmethod
+    def command_body(kw, command):
+        if not isinstance(kw, list): kw = list(kw)
+
+        for i in kw:
+            reg = '^{}'.format(i)
+
+            if re.search(reg, command):
+                return re.sub(reg, '', command)
+
+            else:
+                return None
+
+    @staticmethod
+    def will_triggered(kw, message):
         reg = '^{}'.format(kw)
         exist = re.search(reg, message)
 
         return bool(exist)
 
-    def get_body(self, kw, message):
+    @staticmethod
+    def get_body(kw, message):
         reg = '^{}'.format(kw)
         return re.sub(reg, '', message)
