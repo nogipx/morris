@@ -3,8 +3,6 @@ from database.interfaces.StorageInterface import StorageInterface
 
 class DBProxy(StorageInterface):
 
-    __database__ = None
-
     def __init__(self, db_class):
         self._db = db_class
         self._db.init_db()
@@ -33,6 +31,19 @@ class DBProxy(StorageInterface):
         except Exception:
             self.update([uid, ])
             return self._db.get_member(uid)
+
+    def skipped_percents(self, uid):
+        return self._db.skipped_percents(uid)
+
+    def get_skipped(self, uid):
+        return self._db.get_skipped(uid)
+
+    def increase_skipped(self, uid, value):
+        self._db.increase_skipped(uid, value)
+
+    def decrease_skipped(self, uid, value):
+        self._db.decrease_skipped(uid, value)
+
 
 if __name__ == '__main__':
     db = DBProxy()

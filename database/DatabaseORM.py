@@ -1,6 +1,10 @@
 from peewee import *
+from database.db_settings import *
 
-name_db = 'UsersDatabase.db'
+from database.tables.Member import Member
+from database.tables.SkippedLection import SkippedLection
+
+__models__ = [Member, SkippedLection]
 
 
 def database_name(name):
@@ -8,97 +12,81 @@ def database_name(name):
     name_db = name
 
 
-db = SqliteDatabase(name_db)
+def init_db():
+    db.create_tables(__models__, safe=True)
+
+########################################################################################################################
+### Member ###
 
 
-class Member(Model):
-    id = IntegerField(primary_key=True, index=True, unique=True)
-    domain = CharField()
-    first_name = CharField()
-    last_name = CharField()
-    role = CharField(null=True)
-    sex = IntegerField()
+def count():
+    return len(get_members_ids())
 
-    class Meta:
-        db_table = "Member"
-        database = db
 
-    @staticmethod
-    def init_db():
-        db.create_tables(__models__, safe=True)
+def add_member(member):
+    try:
+        Member.create(**member.__dict__)
+    except IntegrityError:
+        print('INSERT FAILED: id={}, domain="{}" already exists.'
+              .format(member.id, member.domain))
 
-    @staticmethod
-    def count():
-        return len(Member.get_members_ids())
 
-    @staticmethod
-    def add_member(member):
-        try:
-            Member.create(**member.__dict__)
-        except IntegrityError as error:
-            print('INSERT FAILED: id={}, domain="{}" already exists.'
-                  .format(member.id, member.domain))
+def delete_member(user_id):
+    Member.delete().where(Member.id == user_id).execute()
 
-    @staticmethod
-    def delete_member(user_id):
-        Member.delete().where(Member.id == user_id).execute()
 
-    @staticmethod
-    def get_member(user_id, *args):
-        return Member.select(*args).where(Member.id == user_id).get()
+def get_member(user_id, *args):
+    return Member.select(*args).where(Member.id == user_id).get()
 
-    # 2 - Male
-    # 1 - Female
-    # 0 - All
-    @staticmethod
-    def get_members_ids(admins=False, editors=False, moders=False, sex=0):
-        query = Member.select()
-        if sex == 0:
-            if admins:
-                query = Member.select().where(
-                    (Member.role == 'administrator') |
-                    (Member.role == 'creator'))
 
-            elif editors:
-                query = Member.select().where(
-                    Member.role == 'editor')
+# 2 - Male
+# 1 - Female
+# 0 - All
 
-            elif moders:
-                query = Member.select().where(
-                    Member.role == 'moderator')
-
-        elif sex == 1:
+def get_members_ids(admins=False, editors=False, moders=False, sex=0):
+    query = Member.select()
+    if sex == 0:
+        if admins:
             query = Member.select().where(
-                Member.sex == sex)
-
-        elif sex == 2:
+                (Member.role == 'administrator') |
+                (Member.role == 'creator'))
+        elif editors:
             query = Member.select().where(
-                Member.sex == sex)
+                Member.role == 'editor')
+        elif moders:
+            query = Member.select().where(
+                Member.role == 'moderator')
+    elif sex == 1:
+        query = Member.select().where(
+            Member.sex == sex)
+    elif sex == 2:
+        query = Member.select().where(
+            Member.sex == sex)
+    return [user.id for user in query]
 
-        return [user.id for user in query]
-
-    def get_commands(self):
-        commands = Command.select().where(Command.user_id == self.id)
-        return commands
-
-    def add_command(self, name, days, times):
-        Command.create(user_id_id=self.id, name=name, days=days, times=times)
-
-    def remove_command(self, name):
-        commands = Command.delete().where(Command.user_id == self.id, Command.name == name)
-        commands.execute()
-
-
-class Command(Model):
-    id = IntegerField(primary_key=True)
-    user_id = ForeignKeyField(Member, on_delete='NO ACTION')
-    name = CharField()
-    times = CharField(null=True)
-    days = CharField(null=True)
-
-    class Meta:
-        db_table = 'Command'
-        database = db
+########################################################################################################################
+### Skipped lections ###
 
 
-__models__ = [Member, Command]
+def skipped_percents(uid):
+    info = SkippedLection.get_or_create(member_id_id=uid)[0]
+    return info.skipped_lections / info.number_lections * 100
+
+
+def get_skipped(uid):
+    return SkippedLection.get_or_create(member_id=uid)[0].skipped_lections
+
+
+def increase_skipped(uid, value):
+    SkippedLection\
+        .update(skipped_lections=SkippedLection.skipped_lections + value)\
+        .where(SkippedLection.member_id == uid).execute()
+
+
+def decrease_skipped(uid, value):
+    cur_scipped = get_skipped(uid)
+    if cur_scipped - int(value) < 0:
+        value = cur_scipped
+    SkippedLection\
+        .update(skipped_lections=SkippedLection.skipped_lections - value)\
+        .where(SkippedLection.member_id == uid).execute()
