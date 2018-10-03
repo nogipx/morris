@@ -66,14 +66,18 @@ class BaseCommunicateVK:
 
     def send(self, user_id, message, attachments=None, forward=None, destroy=False, destroy_type=0):
         send_to = int(user_id)
+        status = True
 
         if message or attachments:
-            self.api.messages.send(
-                user_id=send_to,
-                message=message,
-                attachment=self.parse_attachments(attachments),
-                forward_messages=forward)
-
+            try:
+                self.api.messages.send(
+                    user_id=send_to,
+                    message=message,
+                    attachment=self.parse_attachments(attachments),
+                    forward_messages=forward)
+            except Exception as err:
+                logging.error(err)
+                status = False
         else:
             logging.error('There are not message and attachment.')
 
@@ -82,6 +86,8 @@ class BaseCommunicateVK:
                 .get('items')[0].get('id')
 
             self.delete(accept_msg_id, destroy_type=destroy_type)
+
+        return status
 
     def delete(self, msg_id, destroy_type=1):
         self.api.messages.delete(message_id=msg_id, delete_for_all=destroy_type)

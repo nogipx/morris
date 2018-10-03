@@ -10,7 +10,8 @@ class BotAccount:
     __account__ = None
 
     def __init__(self):
-        self._vk = None
+        self.vk = None
+        self.api = None
 
     @staticmethod
     def get_account():
@@ -22,14 +23,16 @@ class BotAccount:
 
     def auth(self, login, password):
         try:
-            self._vk = vk_api.VkApi(login, password)
-            self._vk.auth()
+            self.vk = vk_api.VkApi(login, password)
+            self.vk.auth()
+            self.api = self.vk.get_api()
+            return self
         except vk_api.AuthError:
             pass
 
     def method(self, method, args):
         try:
-            message = self._vk.method(method, args)
+            message = self.vk.method(method, args)
             return message
         except vk_api.VkApiError as error:
             print(error)
