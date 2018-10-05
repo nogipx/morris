@@ -1,13 +1,13 @@
-from commands import Command
+from commands.core import Command
 
 
 class AboutCommand(Command):
 
     def __init__(self):
         super().__init__()
-        self._triggers = ['about', 'About']
+        self.triggers = ['about', 'About']
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, **kwargs):
         if len(args) > 0 and args[1] in self._triggers:
             about = """
 (C) Morris Bot, 2018
@@ -25,4 +25,4 @@ class AboutCommand(Command):
 Developed by Mamatkazin Karim, г.Сочи
         """
             return about
-        return False
+        return True

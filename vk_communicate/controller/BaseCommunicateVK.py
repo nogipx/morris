@@ -1,6 +1,5 @@
 from vk_api.longpoll import VkLongPoll
 
-from database.interfaces import StorageInterface
 import vk_api
 import logging
 
@@ -45,26 +44,39 @@ class BaseCommunicateVK:
     def parse_attachments(attachments):
 
         if not attachments:
-            return
+            return ""
 
         attach = []
-        result = ''
+        result = ""
         files = attachments
-        amount = 0
+        amount = 1
 
         for file in files.keys():
 
             if str(file).endswith('type'):
-                amount += 1
                 attach.append((files.get('attach{0}_type'.format(amount)) + files.get('attach{0}'.format(amount))))
+                amount += 1
 
         for i in attach:
-
             result += '{},'.format(i)
 
         return result
 
-    def send(self, user_id, message, attachments=None, forward=None, destroy=False, destroy_type=0):
+    def get_forwards(self, forward, user_id):
+
+        if forward is None or not "fwd_count" in forward:
+            return ""
+
+        last_msg = self.api.messages.getHistory(user_id=user_id, count=1)["items"][0]
+
+        if len(last_msg["fwd_messages"]) == int(forward["fwd_count"]):
+            return last_msg["id"]
+
+        else:
+            self.api.send(user_id, "Slowly, dude. Plz.")
+            return ""
+
+    def send(self, user_id, message, attachments=None, destroy=False, destroy_type=0):
         send_to = int(user_id)
         status = True
 
@@ -74,7 +86,8 @@ class BaseCommunicateVK:
                     user_id=send_to,
                     message=message,
                     attachment=self.parse_attachments(attachments),
-                    forward_messages=forward)
+                    forward_messages=self.get_forwards(attachments, user_id))
+
             except Exception as err:
                 logging.error(err)
                 status = False

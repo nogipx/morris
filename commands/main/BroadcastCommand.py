@@ -1,4 +1,4 @@
-from commands.Command import Command
+from commands.core.Command import Command
 
 
 class BroadcastCommand(Command):
@@ -7,7 +7,11 @@ class BroadcastCommand(Command):
         super().__init__()
         self.triggers = ['.mb']
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, **kwargs):
+        if member.id not in group.get_member_ids(admins=True):
+            group.send(member.id, "You cannot do this ^_^")
+            return True
+
         for i in self.triggers:
             body = self.command_body(i, message)
             if body:
@@ -22,7 +26,11 @@ class AdminBroadcastCommand(Command):
         super().__init__()
         self.triggers = ['.ab']
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, **kwargs):
+        if member.id not in group.get_member_ids(admins=True):
+            group.send(member.id, "You cannot do this ^_^")
+            return True
+
         for i in self.triggers:
             body = self.command_body(i, message)
             if body:

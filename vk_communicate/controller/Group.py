@@ -58,14 +58,13 @@ class Group(BaseCommunicateVK):
 
         return users
 
-    def get_member_ids(self, admins=False, sex=0):
-        ids = self.storage.get_users_ids(admins=admins, sex=sex)
+    def get_member_ids(self, admins=False, editors=False, moders=False, sex=0):
+        ids = self.storage.get_users_ids(admins=admins, editors=editors, moders=moders, sex=sex)
 
         return ids
 
     def get_member(self, uid):
         member = self.storage.get_member(uid)
-        print(member.id, member.domain)
         user = User()
 
         for (field, value) in dict(member.__data__).items():
@@ -73,20 +72,18 @@ class Group(BaseCommunicateVK):
 
         return user
 
-    def broadcast(self, users_ids, message, attachments=None, forward=None, destroy=False, destroy_type=0):
-        if not message:
-            return
+    def broadcast(self, users_ids, message, attachments=None, destroy=False, destroy_type=0):
 
-        def send_all(msg, destroy, delete_for_all):
+        def send_all():
             for user_id in users_ids:
                 try:
-                    self.send(user_id, msg, attachments,
-                              forward=forward, destroy=destroy, destroy_type=delete_for_all)
+                    self.send(user_id, message, attachments, destroy=destroy, destroy_type=destroy_type)
                 except vk_api.VkApiError as error:
                     print('{}: {}'.format(user_id, error))
                 except ValueError:
                     continue
 
-        broadcast_thread = Thread(target=send_all, args=(message, destroy, destroy_type))
+        broadcast_thread = Thread(target=send_all)
         broadcast_thread.start()
+        broadcast_thread.join()
         print("BROADCAST THREAD STARTED")
