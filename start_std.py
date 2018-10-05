@@ -1,15 +1,15 @@
 from core.handlers.EventHandler import EventHandler
-from vk_communicate.BotAccount import BotAccount
-from vk_communicate.group_manager import Group
+from vk_communicate.controller.BotAccount import BotAccount
+from vk_communicate.controller import Group
 
 from commands import UntillEge
 from core.observers import NotifyCheckerObserver, AbstractObserver
 
-from commands import HelpCommand
-from commands.AboutCommand import AboutCommand
+from commands.system import HelpCommand
+from commands.main.AboutCommand import AboutCommand
 from core.observers import CommandObserver
 from commands import HomeworkCommand
-from commands import EgeShellCommand
+from commands.shell import EgeShellCommand
 
 from database import Member
 from database.DBProxy import DBProxy

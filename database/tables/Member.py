@@ -1,5 +1,5 @@
 from peewee import *
-from database.db_settings import *
+from core.settings.db_settings import *
 
 
 class Member(Model):

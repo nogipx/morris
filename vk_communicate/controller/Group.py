@@ -1,9 +1,7 @@
 import vk_api
-import logging
 
-from vk_communicate.BaseCommunicateVK import BaseCommunicateVK
-from vk_communicate.group_manager.data_types.User import User
-from vk_communicate.group_manager import GroupInterface
+from vk_communicate.controller.BaseCommunicateVK import BaseCommunicateVK
+from vk_communicate.model.User import User
 from threading import Thread
 
 

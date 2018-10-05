@@ -1,10 +1,14 @@
 from peewee import *
-from database.db_settings import *
+from core.settings.db_settings import *
 
 from database.tables.Member import Member
 from database.tables.SkippedLection import SkippedLection
 
 __models__ = [Member, SkippedLection]
+
+# Вполне возможны ошибки выполнения, т.к. бд работает синхронно
+# Причина: разные треды для каждого пользователя
+# Решение: перевод бд в асинхронный режим
 
 
 def database_name(name):

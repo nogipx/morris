@@ -1,6 +1,6 @@
 import time
 
-from commands import Command
+from commands.core import Command
 from threading import Timer, Thread
 import datetime
 import pickle
