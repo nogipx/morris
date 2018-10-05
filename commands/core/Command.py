@@ -8,18 +8,14 @@ class Command(metaclass=ABCMeta):
         self.triggers = []
         self.description = "Empty description."
 
+        self.system = False
+        self.privilege = False
+
         self.activate_times = []
         self.activate_days = set()
         self.autostart_func = self.proceed
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
-        """
-        :param args:
-        - First arg always is 'user_id'
-        - Second arg is 'command'
-        - Other args are internal params for command
-        :return:
-        """
+    def proceed(self, member, message, attachments, group, **kwargs):
         raise NotImplementedError()
 
     def clear(self, *args):
@@ -55,30 +51,16 @@ class Command(metaclass=ABCMeta):
                 return self.proceed(user_id, func, *func_args, **kwargs)
         return None
 
-    def generate_name(self):
-        self.name = self.triggers[0]
-
-    @staticmethod
-    def command_body(kw, command):
-        if not isinstance(kw, list): kw = list(kw)
-
-        for i in kw:
-            reg = '^{}'.format(i)
-
-            if re.search(reg, command):
-                return re.sub(reg, '', command)
-
-            else:
-                return None
-
-    @staticmethod
-    def will_triggered(kw, message):
-        reg = '^{}'.format(kw)
-        exist = re.search(reg, message)
-
-        return bool(exist)
+    def name(self):
+        triggers_row = " / ".join(self.triggers)
+        return "{} - {}".format(triggers_row, self.description)
 
     @staticmethod
     def get_body(kw, message):
-        reg = '^{}'.format(kw)
-        return re.sub(reg, '', message)
+        if not isinstance(kw, list): kw = [kw, ]
+
+        for i in kw:
+            reg = '^ *(\\{}) *'.format(i)
+
+            if re.search(reg, message):
+                return re.sub(reg, '', message).strip(' ')

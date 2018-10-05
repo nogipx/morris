@@ -1,4 +1,4 @@
-from commands.Command import Command
+from commands.core.Command import Command
 import datetime
 
 
@@ -13,7 +13,7 @@ class TopicTimetableCommand(Command):
         self.account = None
         self.group_id = None
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, **kwargs):
         self.group_id = group.group_id
         try:
             self.update()

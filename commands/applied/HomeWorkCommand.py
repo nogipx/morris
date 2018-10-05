@@ -1,6 +1,6 @@
 import re
 import datetime
-from commands import Command
+from commands.core import Command
 
 
 class Note:
@@ -59,7 +59,7 @@ class HomeworkCommand(Command):
         self.recent_notes = []
         self.last_id = 0
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, **kwargs):
         if len(args) > 0 and args[1] in self._triggers:
             return self.week()
         return False

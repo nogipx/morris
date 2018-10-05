@@ -1,4 +1,4 @@
-from commands import Command
+from commands.core import Command
 import datetime
 
 
@@ -10,7 +10,7 @@ class UntillEge(Command):
         self.ege_day = datetime.datetime.strptime(ege_date, '%y-%m-%d')
         self.ege_yday = self.ege_day.timetuple().tm_yday
 
-    def proceed(self, member, message, attachments, group, *args, **kwargs):
+    def proceed(self, member, message, attachments, group, **kwargs):
         if len(args) > 0 and args[1] in self._triggers:
             today = datetime.date.today().timetuple()
             month = today.tm_mon

@@ -7,15 +7,15 @@ class BroadcastCommand(Command):
         super().__init__()
         self.triggers = ['.mb']
 
+        self.privilege = True
+        self.description = "Рассылка сообщения всем участникам сообщества."
+
     def proceed(self, member, message, attachments, group, **kwargs):
-        if member.id not in group.get_member_ids(admins=True):
+        if member.id not in group.get_member_ids(admins=True, editors=True):
             group.send(member.id, "You cannot do this ^_^")
             return True
 
-        for i in self.triggers:
-            body = self.command_body(i, message)
-            if body:
-                group.broadcast(group.get_member_ids(), body, group.parse_attachments(attachments))
+        group.broadcast(group.get_member_ids(), message, attachments)
 
         return True
 
@@ -26,14 +26,14 @@ class AdminBroadcastCommand(Command):
         super().__init__()
         self.triggers = ['.ab']
 
+        self.privilege = True
+        self.description = "Рассылка сообщения администаторам сообщества."
+
     def proceed(self, member, message, attachments, group, **kwargs):
-        if member.id not in group.get_member_ids(admins=True):
+        if member.id not in group.get_member_ids(admins=True, editors=True):
             group.send(member.id, "You cannot do this ^_^")
             return True
 
-        for i in self.triggers:
-            body = self.command_body(i, message)
-            if body:
-                group.broadcast(group.get_member_ids(admins=True), body, group.parse_attachments(attachments))
+        group.broadcast(group.get_member_ids(admins=True, editors=True), message, attachments)
 
         return True
