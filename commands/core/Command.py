@@ -43,14 +43,6 @@ class Command(metaclass=ABCMeta):
                 day = 0
             self.activate_days.add(day)
 
-    def handle(self, user_id, message, **kwargs):
-        for part in message:
-            if part in self.triggers:
-                func = part
-                func_args = message[1:]
-                return self.proceed(user_id, func, *func_args, **kwargs)
-        return None
-
     def name(self):
         triggers_row = " / ".join(self.triggers)
         return "{} - {}".format(triggers_row, self.description)

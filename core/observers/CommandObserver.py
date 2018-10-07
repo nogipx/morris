@@ -4,7 +4,7 @@ from time import sleep
 
 class CommandObserver(AbstractObserver):
 
-    def execute(self, member, message, attachments, group):
+    def execute(self, member, message, attachments, group, **kwargs):
 
         for command in self.commands:
 
@@ -15,8 +15,8 @@ class CommandObserver(AbstractObserver):
                     group.api.messages.setActivity(user_id=member.id, type="typing")
 
                     if command.system:
-                        kwargs = {"trigger": trigger, "commands": self.commands}
+                        kwargs.update({"trigger": trigger, "commands": self.commands})
                     else:
-                        kwargs = {"trigger": trigger}
+                        kwargs.update({"trigger": trigger})
 
                     return command.proceed(member, body, attachments, group, **kwargs)

@@ -1,5 +1,4 @@
 from vk_api.longpoll import VkLongPoll
-
 import vk_api
 import logging
 
@@ -22,15 +21,15 @@ class BaseCommunicateVK:
 
     def method(self, func, args):
         return self.api.method(func, args)
-    
+
     @staticmethod
-    def create_session(token=None, login=None, password=None):
+    def create_session(token=None, login=None, password=None, api_v='5.85'):
         try:
             if token:
-                session = vk_api.VkApi(token=token)
+                session = vk_api.VkApi(token=token, api_version=api_v)
 
             elif login and password:
-                session = vk_api.VkApi(login, password)
+                session = vk_api.VkApi(login, password, api_version=api_v)
 
             else:
                 raise vk_api.AuthError("Define login and password or token.")
@@ -40,67 +39,71 @@ class BaseCommunicateVK:
         except vk_api.ApiError as error:
             logging.info(error)
 
+    def get_last_message(self, user_id):
+
+        return self.api.messages.getHistory(
+            peer_id=user_id, count=1)["items"][0]
+
     @staticmethod
-    def parse_attachments(attachments):
+    def get_attachments(last_message):
 
-        if not attachments:
+        if not last_message or "attachments" not in last_message:
             return ""
 
-        attach = []
-        result = ""
-        files = attachments
-        amount = 1
+        attachments = last_message["attachments"]
+        attach_strings = []
 
-        for file in files.keys():
+        for attach in attachments:
 
-            if str(file).endswith('type'):
-                attach.append((files.get('attach{0}_type'.format(amount)) + files.get('attach{0}'.format(amount))))
-                amount += 1
+            attach_type = attach["type"]
+            attach_info = attach[attach_type]
 
-        for i in attach:
-            result += '{},'.format(i)
+            attach_id = attach_info["id"]
+            attach_owner_id = attach_info["owner_id"]
 
-        return result
+            if "access_key" in attach_info:
+                access_key = attach_info["access_key"]
+                attach_string = "{}{}_{}_{}".format(attach_type, attach_owner_id, attach_id, access_key)
 
-    def get_forwards(self, forward, user_id):
+            else:
+                attach_string = "{}{}_{}".format(attach_type, attach_owner_id, attach_id)
 
-        if forward is None or not "fwd_count" in forward:
+            attach_strings.append(attach_string)
+
+        return ",".join(attach_strings)
+
+    @staticmethod
+    def get_forwards(attachments, last_message):
+
+        if not attachments or "fwd_count" not in attachments:
             return ""
 
-        last_msg = self.api.messages.getHistory(user_id=user_id, count=1)["items"][0]
+        if len(last_message["fwd_messages"]) == int(attachments["fwd_count"]):
+            return last_message["id"]
 
-        if len(last_msg["fwd_messages"]) == int(forward["fwd_count"]):
-            return last_msg["id"]
-
-        else:
-            self.api.send(user_id, "Slowly, dude. Plz.")
-            return ""
-
-    def send(self, user_id, message, attachments=None, destroy=False, destroy_type=0):
+    def send(self, user_id, message, attachments=None, destroy=False, destroy_type=0, **kwargs):
         send_to = int(user_id)
-        status = True
 
-        if message or attachments:
-            try:
-                self.api.messages.send(
-                    user_id=send_to,
-                    message=message,
-                    attachment=self.parse_attachments(attachments),
-                    forward_messages=self.get_forwards(attachments, user_id))
-
-            except Exception as err:
-                logging.error(err)
-                status = False
+        if "last_message" in kwargs:
+            last_message = kwargs["last_message"]
         else:
-            logging.error('There are not message and attachment.')
+            last_message = None
+
+        p_attachments = self.get_attachments(last_message)
+        p_forward = self.get_forwards(attachments, last_message)
+
+        if message or p_attachments or p_forward:
+            self.api.messages.send(
+                user_id=send_to, message=message,
+                attachment=p_attachments,
+                forward_messages=p_forward)
 
         if destroy:
-            accept_msg_id = self.api.messages.getHistory(peer_id=user_id, count=1)\
+            accept_msg_id = self.api.messages \
+                .getHistory(peer_id=user_id, count=1) \
                 .get('items')[0].get('id')
 
             self.delete(accept_msg_id, destroy_type=destroy_type)
-
-        return status
 
     def delete(self, msg_id, destroy_type=1):
         self.api.messages.delete(message_id=msg_id, delete_for_all=destroy_type)

@@ -20,7 +20,7 @@ from settings import *
 class VKManage:
 
     def __init__(self, token=None, login=None, password=None):
-        self.session = BaseCommunicateVK.create_session(token, login, password)
+        self.session = BaseCommunicateVK.create_session(token, login, password, api_version)
 
         self.storage = DBProxy(DatabaseORM)
         self.group = Group(self.session, self.storage).setup().update_members()

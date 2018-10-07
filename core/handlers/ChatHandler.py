@@ -29,7 +29,7 @@ class ChatHandler(Handler):
             for event in self.longpoll.listen():
                 if event.user_id and event.type == VkEventType.MESSAGE_NEW and event.to_me:
                     self.group.api.messages.markAsRead(peer_id=event.user_id)
-                    self.handle(event.user_id, event.text, event.attachments)
+                    self.handle(event.user_id, event.text, event.attachments, message_id=event.message_id)
 
         except ConnectionError:
             logging.error("I HAD BEEN DOWNED IN {}".format(datetime.datetime.today()))
@@ -45,9 +45,9 @@ class ChatHandler(Handler):
     def end_dialog(self, user_id):
         pass
 
-    def handle(self, user_id, message, attachments):
+    def handle(self, user_id, message, attachments, **kwargs):
         member = self.group.get_member(user_id)
         # self._lock_user(member.id)
         self.group.update_members()
-        self.command_observer.execute(member, message, attachments, self.group)
+        self.command_observer.execute(member, message, attachments, self.group, **kwargs)
 

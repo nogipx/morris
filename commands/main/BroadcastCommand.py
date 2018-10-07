@@ -15,7 +15,8 @@ class BroadcastCommand(Command):
             group.send(member.id, "You cannot do this ^_^")
             return True
 
-        group.broadcast(group.get_member_ids(), message, attachments)
+        last_message = group.get_last_message(member.id)
+        group.broadcast(group.get_member_ids(), message, attachments, last_message=last_message, **kwargs)
 
         return True
 
@@ -34,6 +35,9 @@ class AdminBroadcastCommand(Command):
             group.send(member.id, "You cannot do this ^_^")
             return True
 
-        group.broadcast(group.get_member_ids(admins=True, editors=True), message, attachments)
+        last_message = group.get_last_message(member.id)
+        group.broadcast(
+            group.get_member_ids(admins=True, editors=True),
+            message, attachments, last_message=last_message, **kwargs)
 
         return True
