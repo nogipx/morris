@@ -4,9 +4,11 @@ from commands.core.Command import Command
 class BroadcastCommand(Command):
 
     def __init__(self):
-        super().__init__()
-        self.triggers = ['.mb']
-
+        super().__init__('.mb')
+        self.keyboard['action'].update({
+            'label': 'Broadcast members'
+        })
+        
         self.privilege = True
         self.description = "Рассылка сообщения всем участникам сообщества."
 
@@ -24,8 +26,10 @@ class BroadcastCommand(Command):
 class AdminBroadcastCommand(Command):
 
     def __init__(self):
-        super().__init__()
-        self.triggers = ['.ab']
+        super().__init__('.ab')
+        self.keyboard['action'].update({
+            'label': 'Broadcast admins'
+        })
 
         self.privilege = True
         self.description = "Рассылка сообщения администаторам сообщества."

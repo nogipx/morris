@@ -4,9 +4,11 @@ from commands.core.Command import Command
 class HelpCommand(Command):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('.h')
         self.commands = []
-        self.triggers = ['.h', '.help']
+        self.keyboard['action'].update({
+            'label': 'Help'
+        })
 
         self.system = True
         self.description = "Показ этого сообщения."

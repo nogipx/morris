@@ -1,19 +1,27 @@
-import re
+import re, json
 from abc import ABCMeta
 
 
 class Command(metaclass=ABCMeta):
 
-    def __init__(self):
-        self.triggers = []
+    def __init__(self, trigger):
+        self.trigger = trigger
         self.description = "Empty description."
 
         self.system = False
         self.privilege = False
+        self.keyboard = { 
+            "action": { 
+                "type": "text", 
+                "payload": json.dumps({'button': self.trigger}), 
+                "label": "Empty"
+            }, 
+            "color": "default" 
+        }
 
         self.activate_times = []
         self.activate_days = set()
-        self.autostart_func = self.proceed
+        self.autostart = self.proceed
 
     def proceed(self, member, message, attachments, group, **kwargs):
         raise NotImplementedError()
@@ -44,8 +52,7 @@ class Command(metaclass=ABCMeta):
             self.activate_days.add(day)
 
     def name(self):
-        triggers_row = " / ".join(self.triggers)
-        return "{} - {}".format(triggers_row, self.description)
+        return "{} - {}".format(self.trigger, self.description)
 
     @staticmethod
     def get_body(kw, message):

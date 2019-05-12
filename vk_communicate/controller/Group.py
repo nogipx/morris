@@ -3,43 +3,56 @@ import vk_api
 from vk_communicate.controller.BaseCommunicateVK import BaseCommunicateVK
 from vk_communicate.model.User import User
 from threading import Thread
-
+from settings import api_version
 
 class Group(BaseCommunicateVK):
 
-    def __init__(self, vksession, storage):
-        super().__init__(vksession)
-        self.storage = storage
-
-    def set_exclude_ids(self, exclude):
-        self._exclude = exclude
+    def __init__(self, token, storage=None):
+        super().__init__(BaseCommunicateVK.create_session(token, api_version))
+        self.members = []
+        self.managers = []
 
     def setup(self):
         self._setup_group()
         self.update_members()
-
         return self
 
     def _setup_group(self):
         group = dict(list(self.api.groups.getById())[0])
-        self._group_domain = group.get("screen_name")
+        self.domain = group.get("screen_name")
         self.group_id = group.get("id")
 
     def update_members(self):
         fields = 'domain, sex'
 
-        admins = self.api.groups.getMembers(group_id=self.group_id, fields=fields, filter='managers')
-        self.save_members(self._configure_users(admins))
+        managers = self.api.groups.getMembers(group_id=self.group_id, fields=fields, filter='managers')
+        self.save_members(self._configure_users(managers))
 
         members = self.api.groups.getMembers(group_id=self.group_id, fields=fields)
         self.save_members(self._configure_users(members))
 
-        return self
+    def save_members(self, members_list):
+        upd_users_ids = [user.id for user in members_list]
+        cur_count = len(self.members)
 
-    def save_members(self, members):
-        self.storage.update(members)
+        if len(upd_users_ids) != cur_count:
+            cur_users_ids = set(self._db.get_members_ids())
+            difference = cur_users_ids.symmetric_difference(upd_users_ids)
 
-    # Было бы лучше, если бы пользователи добавлялись напрямую в бд, а не через дополнительный класс
+            if len(cur_users_ids) > len(upd_users_ids):
+
+                for user_id in difference:
+                    self._db.delete_member(user_id)
+
+            else:
+
+                for user in members_list:
+
+                    if user.id in difference:
+                        self._db.add_member(user)
+
+            self._count = self._db.count()
+
     @staticmethod
     def _configure_users(items, exclude=None):
 
@@ -56,8 +69,8 @@ class Group(BaseCommunicateVK):
 
         return users
 
-    def get_member_ids(self, admins=False, editors=False, moders=False, sex=0):
-        ids = self.storage.get_users_ids(admins=admins, editors=editors, moders=moders, sex=sex)
+    def get_member_ids(self, managers=False, editors=False, moders=False, sex=0):
+        ids = self.storage.get_users_ids(managers=managers, editors=editors, moders=moders, sex=sex)
 
         return ids
 
@@ -94,7 +107,7 @@ class Group(BaseCommunicateVK):
                 except ValueError:
                     continue
 
-            for uid in self.get_member_ids(admins=True, moders=True):
+            for uid in self.get_member_ids(managers=True, moders=True):
                 self.send(uid, str(report))
 
         broadcast_thread = Thread(target=send_all)

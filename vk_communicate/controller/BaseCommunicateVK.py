@@ -1,6 +1,8 @@
-from vk_api.longpoll import VkLongPoll
 import vk_api
 import logging
+
+from settings import api_version
+from vk_api.longpoll import VkLongPoll
 
 
 class BaseCommunicateVK:
